@@ -17,7 +17,7 @@ func SplitSliceToChunk(slice []int, chunkSize int) ([][]int, error) {
 		chunksCount++
 	}
 
-	var chunks = make([][]int, chunksCount, chunksCount)
+	var chunks = make([][]int, chunksCount)
 	var start, end = 0, 0
 	for i := 0; i < chunksCount; i++ {
 		start = end

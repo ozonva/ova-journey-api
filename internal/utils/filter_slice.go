@@ -6,19 +6,21 @@ func FilterSlice(slice []string, excluded []string) []string {
 		return nil
 	}
 
+	if len(slice) == 0 {
+		return []string{}
+	}
+
 	var filteredSlice = make([]string, 0, len(slice))
 
-	if len(slice) > 0 {
-		// prepare filtration map
-		var excludedMap = make(map[string]struct{}, len(excluded))
-		for _, value := range excluded {
-			excludedMap[value] = struct{}{}
-		}
-		// filter slice by map
-		for _, value := range slice {
-			if _, found := excludedMap[value]; !found {
-				filteredSlice = append(filteredSlice, value)
-			}
+	// prepare filtration map
+	var excludedMap = make(map[string]struct{}, len(excluded))
+	for _, value := range excluded {
+		excludedMap[value] = struct{}{}
+	}
+	// filter slice by map
+	for _, value := range slice {
+		if _, found := excludedMap[value]; !found {
+			filteredSlice = append(filteredSlice, value)
 		}
 	}
 

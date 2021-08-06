@@ -9,7 +9,7 @@ func SwapMapKeyValue(sourceMap map[int]string) (map[string]int, error) {
 		return nil, nil
 	}
 
-	var destMap map[string]int = make(map[string]int, len(sourceMap))
+	destMap := make(map[string]int, len(sourceMap))
 
 	for key, value := range sourceMap {
 		if _, found := destMap[value]; found {
