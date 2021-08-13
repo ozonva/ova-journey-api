@@ -9,6 +9,7 @@ func TestSwapMapKeyValue(t *testing.T) {
 	var testTable = []struct {
 		sourceMap map[int]string
 		destMap   map[string]int
+		err       error
 	}{
 		{
 			sourceMap: map[int]string{
@@ -30,10 +31,12 @@ func TestSwapMapKeyValue(t *testing.T) {
 				3: "api",
 			},
 			destMap: nil,
+			err:     ErrSourceMapMustBeUnique,
 		},
 		{
 			sourceMap: nil,
 			destMap:   nil,
+			err:       nil,
 		},
 	}
 
