@@ -1,15 +1,13 @@
 package utils
 
-import "errors"
-
 // SplitSliceToChunk - split slice to chunks of equal size (chunkSize), except last chunk that contains last elements of slice
 func SplitSliceToChunk(slice []int, chunkSize int) ([][]int, error) {
 	if slice == nil {
-		return nil, errors.New("slice cannot be nil")
+		return nil, ErrSliceCannotBeNil
 	}
 
 	if chunkSize < 1 {
-		return nil, errors.New("chunk size must be greater then zero")
+		return nil, ErrIncorrectChunkSize
 	}
 
 	var chunksCount = len(slice) / chunkSize
@@ -18,9 +16,9 @@ func SplitSliceToChunk(slice []int, chunkSize int) ([][]int, error) {
 	}
 
 	var chunks = make([][]int, chunksCount)
-	var start, end = 0, 0
-	for i := 0; i < chunksCount; i++ {
-		start = end
+
+	for i, end := 0, 0; i < chunksCount; i++ {
+		start := end
 		end += chunkSize
 		if end > len(slice) {
 			end = len(slice)

@@ -21,6 +21,7 @@ func TestSwapMapKeyValue(t *testing.T) {
 				"journey": 2,
 				"api":     3,
 			},
+			err: nil,
 		},
 		{
 			sourceMap: map[int]string{
@@ -37,8 +38,9 @@ func TestSwapMapKeyValue(t *testing.T) {
 	}
 
 	for _, testCase := range testTable {
-		result, _ := SwapMapKeyValue(testCase.sourceMap)
+		result, err := SwapMapKeyValue(testCase.sourceMap)
 
 		assert.Equal(t, testCase.destMap, result)
+		assert.Equal(t, testCase.err, err)
 	}
 }

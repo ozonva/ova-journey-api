@@ -28,7 +28,7 @@ func TestSplitSliceToChunk(t *testing.T) {
 		},
 		{
 			slice:     []int{1, 2, 3, 4, 5},
-			chunkSize: -1,
+			chunkSize: 0,
 			result:    nil,
 		},
 		{
@@ -44,8 +44,10 @@ func TestSplitSliceToChunk(t *testing.T) {
 	}
 
 	for _, testCase := range testTable {
-		result, _ := SplitSliceToChunk(testCase.slice, testCase.chunkSize)
+		result, err := SplitSliceToChunk(testCase.slice, testCase.chunkSize)
 
 		assert.Equal(t, testCase.result, result)
+		assert.Equal(t, testCase.err, err)
+
 	}
 }
