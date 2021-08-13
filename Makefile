@@ -1,6 +1,6 @@
 BIN_DIR = bin
 
-.PHONY: run, test, build, clean, all
+.PHONY: run, test, build, clean, lint, all
 
 run:
 	go run cmd/ova-journey-api/main.go
@@ -13,5 +13,8 @@ build:
 
 clean:
 	rm -rf $(BIN_DIR)
+
+lint:
+	golangci-lint run
 
 all: test build
