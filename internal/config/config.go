@@ -13,7 +13,8 @@ type Configuration struct {
 func (c *Configuration) LoadConfigurationFromFile(path string) (conf Configuration, err error) {
 	// вызов через функтор по условию задачи
 	updateConfig := func(path string) (conf Configuration, err error) {
-		file, err := os.Open(path)
+		var file *os.File
+		file, err = os.Open(path)
 		if err != nil {
 			return
 		}
