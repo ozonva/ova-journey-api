@@ -14,8 +14,9 @@ func main() {
 	fmt.Println("Hello, I'm ova-journey-api")
 
 	cu := config.NewConfigurationUpdater(time.Second, ConfigFile)
-	cu.WatchConfigurationFile()
-	fmt.Printf("Used configuration: %v \n", *cu.GetConfiguration())
+	cu.WatchConfigurationFile(func(conf config.Configuration) {
+		fmt.Printf("Used configuration: %v \n", conf)
+	})
 
 	input := bufio.NewScanner(os.Stdin)
 	input.Scan()

@@ -34,11 +34,13 @@ func (cu *ConfigurationUpdater) GetConfiguration() *Configuration {
 }
 
 // WatchConfigurationFile - run infinite task, checking updates in configuration file
-func (cu *ConfigurationUpdater) WatchConfigurationFile() {
+func (cu *ConfigurationUpdater) WatchConfigurationFile(configurationUpdateHandler func(conf Configuration)) {
 	cu.enableConfigWatching = true
 	go func() {
 		for cu.enableConfigWatching {
-			cu.loadConfiguration()
+			if cu.loadConfiguration() {
+				configurationUpdateHandler(cu.configuration)
+			}
 			time.Sleep(cu.updatePeriodicity)
 		}
 	}()
@@ -49,7 +51,9 @@ func (cu *ConfigurationUpdater) UnWatchConfigurationFile() {
 	cu.enableConfigWatching = false
 }
 
-func (cu *ConfigurationUpdater) loadConfiguration() {
+// loadConfiguration - update configuration from file,
+// returns true, if configuration was updated
+func (cu *ConfigurationUpdater) loadConfiguration() bool {
 	cu.fileMutex.Lock()
 	defer cu.fileMutex.Unlock()
 
@@ -63,5 +67,8 @@ func (cu *ConfigurationUpdater) loadConfiguration() {
 	if cu.configuration != newConfig {
 		cu.configuration = newConfig
 		log.Printf("Configuration updated: %v", cu.configuration)
+		return true
 	}
+
+	return false
 }
