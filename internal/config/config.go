@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"log"
 	"os"
 )
 
@@ -11,39 +10,25 @@ type Configuration struct {
 	Port uint   `json:"port"`
 }
 
-func (c *Configuration) LoadConfiguration(path string) {
-	updateConfig := func(path string) (Configuration, error) {
-		var err error
-		configuration := Configuration{}
-
+func (c *Configuration) LoadConfigurationFromFile(path string) (conf Configuration, err error) {
+	// вызов через функтор по условию задачи
+	updateConfig := func(path string) (conf Configuration, err error) {
 		file, err := os.Open(path)
 		if err != nil {
-			return configuration, err
+			return
 		}
 
 		defer func() {
-			defErr := file.Close()
-			if defErr != nil {
+			if defErr := file.Close(); defErr != nil {
 				err = defErr
 			}
 		}()
 
 		decoder := json.NewDecoder(file)
-		err = decoder.Decode(&configuration)
-
-		return configuration, err
+		if err = decoder.Decode(&conf); err != nil {
+			conf = Configuration{}
+		}
+		return
 	}
-
-	newConfig, err := updateConfig(path)
-	if err != nil {
-		log.Panicf("Error occured while reading configuration file: %s", err)
-	}
-	if (newConfig == Configuration{}) {
-		log.Panicf("Configration file is empty")
-	}
-
-	if *c != newConfig {
-		*c = newConfig
-		log.Printf("Configuration updated: %v", *c)
-	}
+	return updateConfig(path)
 }
