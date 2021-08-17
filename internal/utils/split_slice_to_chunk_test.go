@@ -10,42 +10,51 @@ func TestSplitSliceToChunk(t *testing.T) {
 		slice     []int
 		chunkSize int
 		result    [][]int
+		err       error
 	}{
 		{
 			slice:     []int{1, 2},
 			chunkSize: 1,
 			result:    [][]int{[]int{1}, []int{2}},
+			err:       nil,
 		},
 		{
 			slice:     []int{1, 2, 3, 4, 5},
 			chunkSize: 2,
 			result:    [][]int{[]int{1, 2}, []int{3, 4}, []int{5}},
+			err:       nil,
 		},
 		{
 			slice:     nil,
 			chunkSize: 2,
 			result:    nil,
+			err:       ErrSliceCannotBeNil,
 		},
 		{
 			slice:     []int{1, 2, 3, 4, 5},
-			chunkSize: -1,
+			chunkSize: 0,
 			result:    nil,
+			err:       ErrIncorrectChunkSize,
 		},
 		{
 			slice:     []int{},
 			chunkSize: 1,
 			result:    [][]int{},
+			err:       nil,
 		},
 		{
 			slice:     []int{1, 2},
 			chunkSize: 10,
 			result:    [][]int{[]int{1, 2}},
+			err:       nil,
 		},
 	}
 
 	for _, testCase := range testTable {
-		result, _ := SplitSliceToChunk(testCase.slice, testCase.chunkSize)
+		result, err := SplitSliceToChunk(testCase.slice, testCase.chunkSize)
 
 		assert.Equal(t, testCase.result, result)
+		assert.Equal(t, testCase.err, err)
+
 	}
 }
