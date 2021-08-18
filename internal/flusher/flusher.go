@@ -20,7 +20,7 @@ func (f *flusher) Flush(journeys []models.Journey) []models.Journey {
 	if err != nil {
 		return journeys
 	}
-	var failedJourneys []models.Journey = nil
+	var failedJourneys []models.Journey
 	for i, chunk := range chunks {
 		if err := f.journeyRepo.AddJourneys(chunk); err != nil {
 			if failedJourneys == nil {

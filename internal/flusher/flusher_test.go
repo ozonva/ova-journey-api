@@ -19,11 +19,11 @@ var _ = Describe("Flusher", func() {
 		chunkSize int
 
 		journeysTable = []models.Journey{
-			{JourneyId: 0, UserId: 1, Address: "Воронеж", Description: ""},
-			{JourneyId: 1, UserId: 1, Address: "Уфа", Description: ""},
-			{JourneyId: 2, UserId: 2, Address: "Москва", Description: ""},
-			{JourneyId: 3, UserId: 2, Address: "Лондон", Description: ""},
-			{JourneyId: 4, UserId: 3, Address: "Новосибирск", Description: ""},
+			{JourneyID: 0, UserID: 1, Address: "Воронеж", Description: ""},
+			{JourneyID: 1, UserID: 1, Address: "Уфа", Description: ""},
+			{JourneyID: 2, UserID: 2, Address: "Москва", Description: ""},
+			{JourneyID: 3, UserID: 2, Address: "Лондон", Description: ""},
+			{JourneyID: 4, UserID: 3, Address: "Новосибирск", Description: ""},
 		}
 		errRepo = errors.New("repo adding error")
 	)

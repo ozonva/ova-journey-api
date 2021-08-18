@@ -40,7 +40,7 @@ func SliceToMap(srcSlice []models.Journey) (map[uint64]models.Journey, error) {
 	destMap := make(map[uint64]models.Journey, len(srcSlice))
 
 	for _, journey := range srcSlice {
-		destMap[journey.JourneyId] = journey
+		destMap[journey.JourneyID] = journey
 	}
 
 	return destMap, nil
