@@ -1,8 +1,12 @@
-  name: Test and lint on pull request
+  name: Test and lint on pull request or push
   on:
     pull_request:
       branches:
         - main
+    push:
+      branches:
+        - main
+        - feature/*
   jobs:
     lint:
       name: Golangcli Lint
