@@ -6,8 +6,8 @@ import (
 )
 
 type Journey struct {
-	JourneyId   uint64
-	UserId      uint64
+	JourneyID   uint64
+	UserID      uint64
 	Address     string
 	Description string
 	StartTime   time.Time
@@ -16,9 +16,9 @@ type Journey struct {
 
 func (j *Journey) String() string {
 	return fmt.Sprintf(
-		"Journey: Id = %d, UserId = %d, Address = %s, Description = %s, StartTime = %s, EndTime = %s",
-		j.JourneyId,
-		j.UserId,
+		"Journey: Id = %d, UserID = %d, Address = %s, Description = %s, StartTime = %s, EndTime = %s",
+		j.JourneyID,
+		j.UserID,
 		j.Address,
 		j.Description,
 		j.StartTime.Format(time.RFC822),
@@ -26,10 +26,10 @@ func (j *Journey) String() string {
 	)
 }
 
-func NewJourney(journeyId uint64, userId uint64, address string, description string, startTime time.Time, endTime time.Time) *Journey {
+func NewJourney(journeyID uint64, userId uint64, address string, description string, startTime time.Time, endTime time.Time) *Journey {
 	return &Journey{
-		JourneyId:   journeyId,
-		UserId:      userId,
+		JourneyID:   journeyID,
+		UserID:      userId,
 		Address:     address,
 		Description: description,
 		StartTime:   startTime,

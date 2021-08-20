@@ -45,5 +45,4 @@ func TestConfiguration_LoadConfigurationFromFile(t *testing.T) {
 		assert.ErrorIs(t, err, testCase.result.err, testCase.name)
 		assert.Equal(t, testCase.result.conf, result, testCase.name)
 	}
-
 }

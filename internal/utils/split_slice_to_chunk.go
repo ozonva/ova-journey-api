@@ -1,6 +1,6 @@
 package utils
 
-// SplitSliceToChunk - split slice to chunks of equal size (chunkSize), except last chunk that contains last elements of slice
+// SplitSliceToChunk - split slice into chunks of equal size (chunkSize), except last chunk that contains last elements of slice
 func SplitSliceToChunk(slice []int, chunkSize int) ([][]int, error) {
 	if slice == nil {
 		return nil, ErrSliceCannotBeNil

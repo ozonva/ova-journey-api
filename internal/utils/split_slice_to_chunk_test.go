@@ -15,13 +15,13 @@ func TestSplitSliceToChunk(t *testing.T) {
 		{
 			slice:     []int{1, 2},
 			chunkSize: 1,
-			result:    [][]int{[]int{1}, []int{2}},
+			result:    [][]int{{1}, {2}},
 			err:       nil,
 		},
 		{
 			slice:     []int{1, 2, 3, 4, 5},
 			chunkSize: 2,
-			result:    [][]int{[]int{1, 2}, []int{3, 4}, []int{5}},
+			result:    [][]int{{1, 2}, {3, 4}, {5}},
 			err:       nil,
 		},
 		{
@@ -45,16 +45,14 @@ func TestSplitSliceToChunk(t *testing.T) {
 		{
 			slice:     []int{1, 2},
 			chunkSize: 10,
-			result:    [][]int{[]int{1, 2}},
+			result:    [][]int{{1, 2}},
 			err:       nil,
 		},
 	}
 
 	for _, testCase := range testTable {
 		result, err := SplitSliceToChunk(testCase.slice, testCase.chunkSize)
-
 		assert.Equal(t, testCase.result, result)
 		assert.Equal(t, testCase.err, err)
-
 	}
 }
