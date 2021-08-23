@@ -1,4 +1,4 @@
-package saver_test
+package saver
 
 import (
 	"github.com/golang/mock/gomock"
@@ -6,7 +6,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/ozonva/ova-journey-api/internal/mocks"
 	"github.com/ozonva/ova-journey-api/internal/models"
-	"github.com/ozonva/ova-journey-api/internal/saver"
 	"sync"
 	"time"
 )
@@ -15,7 +14,7 @@ var _ = Describe("Saver", func() {
 	var (
 		ctrl          *gomock.Controller
 		mockFlusher   *mocks.MockFlusher
-		s             saver.Saver
+		s             Saver
 		capacity      uint
 		delayFlushing time.Duration
 	)
@@ -34,7 +33,7 @@ var _ = Describe("Saver", func() {
 	})
 
 	JustBeforeEach(func() {
-		s = saver.NewSaver(capacity, mockFlusher, delayFlushing)
+		s = NewSaver(capacity, mockFlusher, delayFlushing)
 	})
 
 	AfterEach(func() {
@@ -56,7 +55,7 @@ var _ = Describe("Saver", func() {
 
 				for _, journey := range journeysTable {
 					result := s.Save(journey)
-					Expect(result).Should(Equal(saver.IsClosedError))
+					Expect(result).Should(Equal(IsClosedError))
 				}
 			})
 		})
@@ -72,7 +71,7 @@ var _ = Describe("Saver", func() {
 
 				for _, journey := range journeysTable {
 					result := s.Save(journey)
-					Expect(result).Should(Equal(saver.IsClosedError))
+					Expect(result).Should(Equal(IsClosedError))
 				}
 			})
 		})
@@ -85,7 +84,7 @@ var _ = Describe("Saver", func() {
 				closeResult := s.Close()
 
 				Expect(saveResult).Should(BeNil())
-				Expect(closeResult).Should(Equal(saver.IsClosedWithRemainDataError))
+				Expect(closeResult).Should(Equal(IsClosedWithRemainDataError))
 			})
 		})
 	})
@@ -162,7 +161,7 @@ var _ = Describe("Saver", func() {
 
 				wg.Wait()
 
-				Expect(results).Should(ContainElements(saver.InternalBufferIsFullError))
+				Expect(results).Should(ContainElements(InternalBufferIsFullError))
 			})
 		})
 

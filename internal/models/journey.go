@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+//Journey - represents the journey description object
 type Journey struct {
 	JourneyID   uint64
 	UserID      uint64
@@ -26,6 +27,7 @@ func (j *Journey) String() string {
 	)
 }
 
+// NewJourney - creates new Journey object using arguments
 func NewJourney(journeyID uint64, userId uint64, address string, description string, startTime time.Time, endTime time.Time) *Journey {
 	return &Journey{
 		JourneyID:   journeyID,

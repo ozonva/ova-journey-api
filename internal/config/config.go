@@ -5,13 +5,15 @@ import (
 	"os"
 )
 
+// Configuration type represents application configuration
 type Configuration struct {
 	Host string `json:"host"`
 	Port uint   `json:"port"`
 }
 
+// LoadConfigurationFromFile - method for load Configuration from JSON file.
+// The method return empty Configuration if any error occur in loading process.
 func (c *Configuration) LoadConfigurationFromFile(path string) (conf Configuration, err error) {
-	// вызов через функтор по условию задачи
 	updateConfig := func(path string) (conf Configuration, err error) {
 		var file *os.File
 		file, err = os.Open(path)

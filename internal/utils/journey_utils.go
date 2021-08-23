@@ -4,6 +4,7 @@ import (
 	"github.com/ozonva/ova-journey-api/internal/models"
 )
 
+// SplitToChunks - split models.Journey slice into batches with size of chinkSize
 func SplitToChunks(slice []models.Journey, chunkSize int) ([][]models.Journey, error) {
 	if slice == nil {
 		return nil, ErrSliceCannotBeNil
@@ -32,6 +33,7 @@ func SplitToChunks(slice []models.Journey, chunkSize int) ([][]models.Journey, e
 	return chunks, nil
 }
 
+//SliceToMap - create map with JourneyID as key and Journey as value from models.Journey slice
 func SliceToMap(srcSlice []models.Journey) (map[uint64]models.Journey, error) {
 	if len(srcSlice) == 0 {
 		return nil, ErrSliceCannotBeNilOrEmpty

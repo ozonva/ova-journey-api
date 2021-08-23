@@ -1,4 +1,4 @@
-package saver_test
+package saver
 
 import (
 	"testing"
