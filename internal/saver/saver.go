@@ -97,6 +97,16 @@ func NewSaver(
 	flusher flusher.Flusher,
 	delayBetweenFlushing time.Duration,
 ) Saver {
+	if capacity < 1 {
+		panic("capacity must be greater then 0")
+	}
+	if flusher == nil {
+		panic("flusher cannot be nil")
+	}
+	if delayBetweenFlushing < 1 {
+		panic("delayBetweenFlushing must be greater then 0")
+	}
+
 	s := saver{
 		flusher: flusher,
 		close:   make(chan struct{}),
