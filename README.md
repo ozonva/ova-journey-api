@@ -3,6 +3,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/ozonva/ova-journey-api)](https://goreportcard.com/report/github.com/ozonva/ova-journey-api)
 [![GitHub license](https://img.shields.io/github/license/ozonva/ova-journey-api.svg)](https://github.com/ozonva/ova-journey-api/LICENSE)
 [![GitHub pull-requests](https://img.shields.io/github/issues-pr/ozonva/ova-journey-api.svg)](https://github.com/ozonva/ova-journey-api.svg/pull/)
+[![Test & Lint](https://github.com/ozonva/ova-journey-api/actions/workflows/test_and_lint.yml/badge.svg?branch=main)](https://github.com/ozonva/ova-journey-api/actions/workflows/test_and_lint.yml)
 
 ### Commands
 + ```make run```- run the application
