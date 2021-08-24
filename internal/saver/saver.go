@@ -66,6 +66,7 @@ func (s *saver) Close() error {
 	// lock the state
 	s.Lock()
 	if s.state == closed {
+		s.Unlock()
 		return IsClosedError
 	}
 
