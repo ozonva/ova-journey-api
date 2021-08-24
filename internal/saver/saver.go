@@ -36,16 +36,15 @@ const (
 )
 
 type saver struct {
-	sync.Mutex
-	flusher flusher.Flusher
-	buffer  []models.Journey
-	done    chan struct{}
-	state   saverState
+	sync.Mutex // for lock state and buffer
+	flusher    flusher.Flusher
+	buffer     []models.Journey
+	done       chan struct{}
+	state      saverState
 }
 
 // Save - add new journey to internal buffer of Saver
 func (s *saver) Save(journey models.Journey) error {
-	// lock the state and internal buffer
 	s.Lock()
 	defer s.Unlock()
 
@@ -63,26 +62,21 @@ func (s *saver) Save(journey models.Journey) error {
 
 // Close - close the Saver with flushing all remain data from internal buffer.
 func (s *saver) Close() error {
-	// lock the state
 	s.Lock()
+	defer s.Unlock()
+
 	if s.state == closed {
-		s.Unlock()
 		return IsClosedError
 	}
 
 	s.state = closed
 	s.done <- struct{}{}
 	close(s.done)
-	s.Unlock()
 
 	return s.uploadToFlusher()
 }
 
 func (s *saver) uploadToFlusher() error {
-	// lock internal buffer
-	s.Lock()
-	defer s.Unlock()
-
 	if len(s.buffer) == 0 {
 		return nil
 	}
@@ -136,7 +130,9 @@ func NewSaver(
 		for {
 			select {
 			case <-ticker.C:
+				s.Lock()
 				_ = s.uploadToFlusher()
+				s.Unlock()
 			case <-s.done:
 				return
 			}
