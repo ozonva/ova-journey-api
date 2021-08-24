@@ -4,6 +4,7 @@
 package saver
 
 import (
+	"fmt"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -79,7 +80,19 @@ var _ = Describe("Saver", func() {
 				delayFlushing = time.Hour
 			})
 
-			When("try to save save on closed saver", func() {
+			When("try to close on already closed saver", func() {
+				It("should return IsClosedError without attempts to flush", func() {
+					mockFlusher.EXPECT().Flush(gomock.Any()).Times(0)
+
+					closeResult := s.Close()
+					Expect(closeResult).Should(BeNil())
+
+					closeResult = s.Close()
+					Expect(closeResult).Should(Equal(IsClosedError))
+				})
+			})
+
+			When("try to save on closed saver", func() {
 				It("should return IsClosedError without attempts to flush", func() {
 					mockFlusher.EXPECT().Flush(gomock.Any()).Times(0)
 
@@ -110,14 +123,14 @@ var _ = Describe("Saver", func() {
 			})
 
 			When("try to close saver after add one journey with failed flushing", func() {
-				It("should return IsClosedWithRemainDataError for close", func() {
+				It("should return PartOfDataIsNotFlushedError for close", func() {
 					mockFlusher.EXPECT().Flush(journeysTable[:1]).Times(1).Return(journeysTable[:1])
 
 					saveResult := s.Save(journeysTable[0])
 					closeResult := s.Close()
 
 					Expect(saveResult).Should(BeNil())
-					Expect(closeResult).Should(Equal(IsClosedWithRemainDataError))
+					Expect(closeResult).Should(Equal(PartOfDataIsNotFlushedError))
 				})
 			})
 		})
@@ -134,10 +147,11 @@ var _ = Describe("Saver", func() {
 					if len(journeysTable)%int(capacity) > 0 {
 						flusherCallsLimit++
 					}
+					fmt.Println(flusherCallsLimit)
 					mockFlusher.EXPECT().Flush(gomock.Any()).MinTimes(flusherCallsLimit)
 
 					wg := sync.WaitGroup{}
-					wg.Add(flusherCallsLimit)
+					wg.Add(1)
 
 					go func() {
 						dataSendTicker := time.NewTicker(delayFlushing + delayFlushing/2)
@@ -145,16 +159,11 @@ var _ = Describe("Saver", func() {
 						i := 0
 						for {
 							<-dataSendTicker.C
-							for j := 0; j < int(capacity); j++ {
-								result := s.Save(journeysTable[i])
-								Expect(result).Should(BeNil())
-								i++
-								if i >= len(journeysTable) {
-									break
-								}
-							}
-							wg.Done()
+							result := s.Save(journeysTable[i])
+							Expect(result).Should(BeNil())
+							i++
 							if i >= len(journeysTable) {
+								wg.Done()
 								return
 							}
 						}
