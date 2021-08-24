@@ -73,33 +73,51 @@ var _ = Describe("Saver", func() {
 			s = NewSaver(capacity, mockFlusher, delayFlushing)
 		})
 
-		Context("using Close after Save", func() {
+		Context("using closed saver", func() {
 			BeforeEach(func() {
-				capacity = 5
+				capacity = 2
 				delayFlushing = time.Hour
 			})
 
-			When("try to close saver after add all journeys", func() {
-				It("should save all journeys by flusher", func() {
-					mockFlusher.EXPECT().Flush(journeysTable).Times(1)
+			When("try to save save on closed saver", func() {
+				It("should return IsClosedError without attempts to flush", func() {
+					mockFlusher.EXPECT().Flush(gomock.Any()).Times(0)
+
+					closeResult := s.Close()
+					Expect(closeResult).Should(BeNil())
 
 					for _, journey := range journeysTable {
-						saveResult := s.Save(journey)
-						Expect(saveResult).Should(BeNil())
+						result := s.Save(journey)
+						Expect(result).Should(Equal(IsClosedError))
 					}
-					s.Close()
-
 				})
 			})
 
-			When("try to close saver after add one journey", func() {
-				It("should save one journey by flusher", func() {
-					mockFlusher.EXPECT().Flush(journeysTable[:1]).Times(1)
+			When("try to save on closed saver after add one journey with success flushing", func() {
+				It("should return IsClosedError and try to flush 1 item", func() {
+					mockFlusher.EXPECT().Flush(journeysTable[:1]).Times(1).Return(nil)
 
 					saveResult := s.Save(journeysTable[0])
-					s.Close()
+					closeResult := s.Close()
+					Expect(saveResult).Should(BeNil())
+					Expect(closeResult).Should(BeNil())
+
+					for _, journey := range journeysTable {
+						result := s.Save(journey)
+						Expect(result).Should(Equal(IsClosedError))
+					}
+				})
+			})
+
+			When("try to close saver after add one journey with failed flushing", func() {
+				It("should return IsClosedWithRemainDataError for close", func() {
+					mockFlusher.EXPECT().Flush(journeysTable[:1]).Times(1).Return(journeysTable[:1])
+
+					saveResult := s.Save(journeysTable[0])
+					closeResult := s.Close()
 
 					Expect(saveResult).Should(BeNil())
+					Expect(closeResult).Should(Equal(IsClosedWithRemainDataError))
 				})
 			})
 		})
