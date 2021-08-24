@@ -6,6 +6,7 @@ run:
 	go run cmd/ova-journey-api/main.go
 
 test:
+	go test ./...
 	go test -race ./...
 
 generate:
