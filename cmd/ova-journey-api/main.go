@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+//ConfigFile - application configuration file path
 const ConfigFile = "config/config.json"
 
 func main() {

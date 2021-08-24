@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// ConfigurationUpdater type represents object for check Configuration updates in JSON file.
 type ConfigurationUpdater struct {
 	updatePeriodicity    time.Duration
 	filePath             string
@@ -59,7 +60,7 @@ func (cu *ConfigurationUpdater) loadConfiguration() bool {
 
 	newConfig, err := cu.configuration.LoadConfigurationFromFile(cu.filePath)
 	if err != nil {
-		log.Printf("Error occured while reading configuration file: %s", err)
+		log.Printf("Error occurred while reading configuration file: %s", err)
 	}
 	if (newConfig == Configuration{}) {
 		log.Panicf("Configration is empty")

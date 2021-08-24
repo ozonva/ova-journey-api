@@ -1,4 +1,4 @@
-  name: Test and lint on pull request or push
+  name: Test and golangcli-lint
   on:
     pull_request:
       branches:
