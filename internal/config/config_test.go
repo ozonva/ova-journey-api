@@ -1,9 +1,10 @@
 package config
 
 import (
-	"github.com/stretchr/testify/assert"
 	"io/fs"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type testLoadConfigurationFromFileResult struct {
@@ -20,11 +21,21 @@ func TestConfiguration_LoadConfigurationFromFile(t *testing.T) {
 	}{
 		{
 			name:       "correct configuration",
-			configPath: "test_configs/config_test.json",
+			configPath: "test_configs/config_test.yaml",
 			result: testLoadConfigurationFromFileResult{
 				conf: Configuration{
-					Host: "localhost",
-					Port: 777,
+					Project: &ProjectConfiguration{
+						Name:    "Journey API for Amazon Voice Assistant Project",
+						Version: "v0.0.0-test",
+					},
+					GRPC: &EndpointConfiguration{
+						Host: "127.0.0.1",
+						Port: 9090,
+					},
+					Gateway: &EndpointConfiguration{
+						Host: "127.0.0.1",
+						Port: 8080,
+					},
 				},
 				err: nil,
 			},

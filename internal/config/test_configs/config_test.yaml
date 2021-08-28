@@ -1,0 +1,11 @@
+project:
+  name: Journey API for Amazon Voice Assistant Project
+  version: v0.0.0-test
+
+grpc:
+  host: 127.0.0.1
+  port: 9090
+
+gateway:
+  host: 127.0.0.1
+  port: 8080
