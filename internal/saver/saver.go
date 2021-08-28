@@ -8,17 +8,17 @@ import (
 	"time"
 )
 
-// InternalBufferIsFullError - this error occurs when you try to add a new element using the Saver.Save() method
+// ErrInternalBufferIsFull - this error occurs when you try to add a new element using the Saver.Save() method
 // if there are already capacity elements in the internal buffer
-var InternalBufferIsFullError = errors.New("cannot add new journey, saver internal buffer is full")
+var ErrInternalBufferIsFull = errors.New("cannot add new journey, saver internal buffer is full")
 
-// IsClosedError - this error occurs when you try to add a new element using the Saver.Save() method after calling
+// ErrSaverIsClosed - this error occurs when you try to add a new element using the Saver.Save() method after calling
 // Saver.Close() method. closed Saver cannot be used, you should create a new Saver
-var IsClosedError = errors.New("saver is closed and cannot be used anymore")
+var ErrSaverIsClosed = errors.New("saver is closed and cannot be used anymore")
 
-// PartOfDataIsNotFlushedError - this error occurs when part of the data remains unwritten
+// ErrPartOfDataIsNotFlushed - this error occurs when part of the data remains unwritten
 // from internal buffer to the storage by flusher
-var PartOfDataIsNotFlushedError = errors.New("part of journeys was not flushed")
+var ErrPartOfDataIsNotFlushed = errors.New("part of journeys was not flushed")
 
 // Saver represents the object used for saving journeys in storage
 type Saver interface {
@@ -49,11 +49,11 @@ func (s *saver) Save(journey models.Journey) error {
 	defer s.Unlock()
 
 	if s.state == closed {
-		return IsClosedError
+		return ErrSaverIsClosed
 	}
 
 	if len(s.buffer) == cap(s.buffer) {
-		return InternalBufferIsFullError
+		return ErrInternalBufferIsFull
 	}
 
 	s.buffer = append(s.buffer, journey)
@@ -66,7 +66,7 @@ func (s *saver) Close() error {
 	defer s.Unlock()
 
 	if s.state == closed {
-		return IsClosedError
+		return ErrSaverIsClosed
 	}
 
 	s.state = closed
@@ -87,7 +87,7 @@ func (s *saver) uploadToFlusher() error {
 	// if not all data was flushed, restore them to try flush again in next call
 	if len(saveFailedJourneys) > 0 {
 		s.buffer = append(s.buffer, saveFailedJourneys...)
-		return PartOfDataIsNotFlushedError
+		return ErrPartOfDataIsNotFlushed
 	}
 	return nil
 }
@@ -96,12 +96,12 @@ func (s *saver) uploadToFlusher() error {
 //
 // Use Saver.Save() method to add new journey for flushing.
 // For collecting data between flushing attempts used internal buffer with capacity size.
-// If internal buffer is full the Saver.Save() method returns InternalBufferIsFullError without adding journey for flushing.
-// If Saver is already closed the Saver.Save() method returns IsClosedError without trying to flush journey.
+// If internal buffer is full the Saver.Save() method returns ErrInternalBufferIsFull without adding journey for flushing.
+// If Saver is already closed the Saver.Save() method returns ErrSaverIsClosed without trying to flush journey.
 //
 // Use Saver.Close() method to immediately flush data and close Saver.
 // After closing Saver stops to try flushing data and cannot be used anymore.
-// If not all data from internal buffer was flushed the Saver.Close() method returns PartOfDataIsNotFlushedError.
+// If not all data from internal buffer was flushed the Saver.Close() method returns ErrPartOfDataIsNotFlushed.
 func NewSaver(
 	capacity uint,
 	flusher flusher.Flusher,
