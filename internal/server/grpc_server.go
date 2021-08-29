@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/jmoiron/sqlx"
 	"net"
 
 	"github.com/rs/zerolog/log"
@@ -8,12 +9,14 @@ import (
 
 	"github.com/ozonva/ova-journey-api/internal/api"
 	"github.com/ozonva/ova-journey-api/internal/config"
+	"github.com/ozonva/ova-journey-api/internal/repo"
 	desc "github.com/ozonva/ova-journey-api/pkg/ova-journey-api"
 )
 
 // GrpcServer - represents simple gRPC server wrapper
 type GrpcServer struct {
 	configuration *config.EndpointConfiguration
+	db            *sqlx.DB
 	server        *grpc.Server
 	errChan       chan<- error
 }
@@ -21,9 +24,10 @@ type GrpcServer struct {
 // NewGrpcServer - creates new GrpcServer with configuration endpoint
 //
 // and output channel to signalize about critical errors
-func NewGrpcServer(configuration *config.EndpointConfiguration, errChan chan<- error) *GrpcServer {
+func NewGrpcServer(configuration *config.EndpointConfiguration, db *sqlx.DB, errChan chan<- error) *GrpcServer {
 	return &GrpcServer{
 		configuration: configuration,
+		db:            db,
 		errChan:       errChan,
 	}
 }
@@ -37,8 +41,10 @@ func (s *GrpcServer) Start() {
 		s.errChan <- err
 	}
 
+	repository := repo.NewRepo(s.db)
+
 	s.server = grpc.NewServer()
-	desc.RegisterJourneyApiV1Server(s.server, api.NewJourneyAPI())
+	desc.RegisterJourneyApiV1Server(s.server, api.NewJourneyAPI(repository))
 
 	go func() {
 		log.Debug().Msg("GRPC server: starting")

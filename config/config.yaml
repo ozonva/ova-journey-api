@@ -1,6 +1,6 @@
 project:
   name: Journey API for Amazon Voice Assistant Project
-  version: v0.6.0
+  version: v0.7.0
 
 grpc:
   host: 0.0.0.0

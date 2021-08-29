@@ -1,6 +1,7 @@
 package saver
 
 import (
+	"context"
 	"errors"
 	"github.com/ozonva/ova-journey-api/internal/flusher"
 	"github.com/ozonva/ova-journey-api/internal/models"
@@ -81,7 +82,7 @@ func (s *saver) uploadToFlusher() error {
 		return nil
 	}
 
-	saveFailedJourneys := s.flusher.Flush(s.buffer)
+	saveFailedJourneys := s.flusher.Flush(context.TODO(), s.buffer)
 	s.buffer = s.buffer[:0]
 
 	// if not all data was flushed, restore them to try flush again in next call
