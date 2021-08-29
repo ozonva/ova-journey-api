@@ -9,3 +9,12 @@ grpc:
 gateway:
   host: 127.0.0.1
   port: 8080
+
+database:
+  host: database
+  port: 5432
+  user: postgres
+  password: postgres
+  name: ova_journey_api
+  sslMode: disable
+  driver: pgx

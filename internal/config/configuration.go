@@ -1,28 +1,16 @@
 package config
 
 import (
-	"fmt"
 	"gopkg.in/yaml.v2"
 	"os"
 )
 
 // Configuration type represents application configuration
 type Configuration struct {
-	Project *ProjectConfiguration  `yaml:"project"`
-	GRPC    *EndpointConfiguration `yaml:"grpc"`
-	Gateway *EndpointConfiguration `yaml:"gateway"`
-}
-
-// ProjectConfiguration type represents configuration with information about project
-type ProjectConfiguration struct {
-	Name    string `yaml:"name"`
-	Version string `yaml:"version"`
-}
-
-// EndpointConfiguration type represents configuration for network endpoint (host and port)
-type EndpointConfiguration struct {
-	Host string `yaml:"host"`
-	Port int    `yaml:"port"`
+	Project  *ProjectConfiguration  `yaml:"project"`
+	GRPC     *EndpointConfiguration `yaml:"grpc"`
+	Gateway  *EndpointConfiguration `yaml:"gateway"`
+	Database *DatabaseConfiguration `yaml:"database"`
 }
 
 // LoadConfigurationFromFile - method for load Configuration from JSON file.
@@ -70,9 +58,4 @@ func CompareConfigurations(a, b *Configuration) bool {
 		return false
 	}
 	return true
-}
-
-// GetEndpointAddress - returns string in format "hostname:port" for endpoint
-func (c *EndpointConfiguration) GetEndpointAddress() string {
-	return fmt.Sprintf("%s:%v", c.Host, c.Port)
 }
