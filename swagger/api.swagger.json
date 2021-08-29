@@ -69,6 +69,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiCreateJourneyRequestV1"
+            }
+          }
+        ],
         "tags": [
           "JourneyApiV1"
         ]
@@ -136,6 +146,29 @@
     }
   },
   "definitions": {
+    "apiCreateJourneyRequestV1": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "address": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "startTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "endTime": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
     "apiCreateJourneyResponseV1": {
       "type": "object",
       "properties": {

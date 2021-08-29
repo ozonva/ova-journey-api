@@ -12,6 +12,7 @@ service JourneyApiV1{
   rpc CreateJourneyV1(CreateJourneyRequestV1) returns (CreateJourneyResponseV1){
     option (google.api.http) = {
       post: "/v1/journeys"
+      body: "*"
     };
   }
   rpc DescribeJourneyV1(DescribeJourneyRequestV1) returns (DescribeJourneyResponseV1){
@@ -41,11 +42,11 @@ message Journey {
 }
 
 message CreateJourneyRequestV1{
-  uint64 user_id = 2 [(validate.rules).uint64.gt = 0];
-  string address = 3;
-  string description = 4;
-  google.protobuf.Timestamp start_time = 5;
-  google.protobuf.Timestamp end_time = 6;
+  uint64 user_id = 1 [(validate.rules).uint64.gt = 0];
+  string address = 2;
+  string description = 3;
+  google.protobuf.Timestamp start_time = 4;
+  google.protobuf.Timestamp end_time = 5;
 }
 
 message CreateJourneyResponseV1{

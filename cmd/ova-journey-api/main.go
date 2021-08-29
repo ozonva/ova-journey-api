@@ -24,17 +24,13 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 
-	errGrpcChan := make(chan error, 1)
-	errGatewayChan := make(chan error, 1)
+	errChan := make(chan error, 1)
 	configChan := make(chan config.Configuration)
 
 	cu := config.NewConfigurationUpdater(ConfigUpdatePeriod, ConfigFile)
 	configuration := cu.GetConfiguration()
 
-	grpcServer := server.NewGrpcServer(configuration.GRPC, errGrpcChan)
-	gatewayServer := server.NewGatewayServer(configuration.Gateway, configuration.GRPC, errGatewayChan)
-	grpcServer.Start()
-	gatewayServer.Start()
+	grpc, gateway := startApp(configuration, errChan)
 
 	cu.WatchConfigurationFile(func(configuration config.Configuration) {
 		configChan <- configuration
@@ -42,30 +38,32 @@ func main() {
 
 	for {
 		select {
-		case configuration := <-configChan:
-			log.Info().Msg("Restart servers after changing configuration")
-			gatewayServer.Stop()
-			grpcServer.Stop()
-			gatewayServer.UpdateConfiguration(configuration.Gateway, configuration.GRPC)
-			grpcServer.UpdateConfiguration(configuration.GRPC)
-			grpcServer.Start()
-			gatewayServer.Start()
-			log.Debug().Msg("Restart servers success")
-		case err := <-errGrpcChan:
-			log.Err(err).Msg("GRPC server error")
-			gatewayServer.Stop()
-			grpcServer.Stop()
-			return
-		case err := <-errGatewayChan:
-			log.Err(err).Msg("Gateway server error")
-			gatewayServer.Stop()
-			grpcServer.Stop()
+		case c := <-configChan:
+			log.Info().Msg("Restart service after changing configuration")
+			stopApp(grpc, gateway)
+			grpc, gateway = startApp(&c, errChan)
+			log.Debug().Msg("Restart service success")
+		case err := <-errChan:
+			log.Err(err).Msg("Internal server error")
+			stopApp(grpc, gateway)
 			return
 		case <-quit:
 			log.Info().Msg("Shutdown service")
-			gatewayServer.Stop()
-			grpcServer.Stop()
+			stopApp(grpc, gateway)
 			return
 		}
 	}
+}
+
+func startApp(c *config.Configuration, errChan chan<- error) (*server.GrpcServer, *server.GatewayServer) {
+	grpcServer := server.NewGrpcServer(c.GRPC, errChan)
+	gatewayServer := server.NewGatewayServer(c.Gateway, c.GRPC, errChan)
+	grpcServer.Start()
+	gatewayServer.Start()
+	return grpcServer, gatewayServer
+}
+
+func stopApp(grpcServer *server.GrpcServer, gatewayServer *server.GatewayServer) {
+	gatewayServer.Stop()
+	grpcServer.Stop()
 }

@@ -62,6 +62,10 @@ build: deps
 
 .PHONY: clean
 clean:
+	rm -f $(CURDIR)/buf.work.yaml
+	rm -f $(CURDIR)/buf.gen.yaml
+	rm -f swagger/api.swagger.json
+	rm -rf $(THIRD_PARTY)
 	rm -rf $(LOCAL_BIN)
 
 .PHONY: lint

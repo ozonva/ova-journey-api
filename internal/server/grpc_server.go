@@ -53,10 +53,3 @@ func (s *GrpcServer) Start() {
 func (s *GrpcServer) Stop() {
 	s.server.GracefulStop()
 }
-
-// UpdateConfiguration - update endpoint configuration for GrpcServer object.
-//
-// New  endpoint configuration will be used only after restart GrpcServer
-func (s *GrpcServer) UpdateConfiguration(configuration *config.EndpointConfiguration) {
-	s.configuration = configuration
-}

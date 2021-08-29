@@ -83,11 +83,3 @@ func (s *GatewayServer) Stop() {
 	}
 	s.wg.Wait()
 }
-
-// UpdateConfiguration - update configuration parameters for GatewayServer object.
-//
-// New parameters will be used only after restart GatewayServer
-func (s *GatewayServer) UpdateConfiguration(gatewayConfiguration, grpcEndpointConfiguration *config.EndpointConfiguration) {
-	s.gatewayConfiguration = gatewayConfiguration
-	s.grpcEndpointConfiguration = grpcEndpointConfiguration
-}
