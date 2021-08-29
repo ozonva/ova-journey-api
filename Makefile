@@ -58,7 +58,7 @@ test:
 
 .PHONY: build
 build: deps
-	go build -o $(LOCAL_BIN)/main cmd/ova-journey-api/main.go
+	CGO_ENABLED=0 go build -o $(LOCAL_BIN)/ova-journey-api cmd/ova-journey-api/main.go
 
 .PHONY: clean
 clean:

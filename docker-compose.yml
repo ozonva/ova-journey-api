@@ -1,0 +1,10 @@
+version: "3.9"
+
+services:
+  ova-journey-api:
+    container_name: ova-journey-api
+    build: .
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+    restart: unless-stopped

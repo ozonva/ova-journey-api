@@ -38,9 +38,13 @@ func (s *GatewayServer) Start() {
 	gatewayAddress := s.gatewayConfiguration.GetEndpointAddress()
 	grpcAddress := s.grpcEndpointConfiguration.GetEndpointAddress()
 
-	mux := runtime.NewServeMux()
+	mux := http.NewServeMux()
+	gatewayMux := runtime.NewServeMux()
+	mux.Handle("/", gatewayMux)
+	mux.Handle("/swagger/", http.StripPrefix("/swagger/", http.FileServer(http.Dir("./swagger"))))
 
 	s.httpServer = &(http.Server{Addr: gatewayAddress, Handler: mux})
+
 	s.wg = &sync.WaitGroup{}
 
 	go func() {
@@ -49,7 +53,7 @@ func (s *GatewayServer) Start() {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		err := desc.RegisterJourneyApiV1HandlerFromEndpoint(ctx, mux, grpcAddress, opts)
+		err := desc.RegisterJourneyApiV1HandlerFromEndpoint(ctx, gatewayMux, grpcAddress, opts)
 		if err != nil {
 			log.Err(err).Msg("Gateway server: failed to register handler to GRPC")
 			s.errChan <- err
@@ -68,7 +72,6 @@ func (s *GatewayServer) Start() {
 			log.Err(err).Msg("Gateway server: failed to serve")
 			s.errChan <- err
 		}
-
 	}()
 }
 
