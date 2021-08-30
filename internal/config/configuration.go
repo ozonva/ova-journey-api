@@ -37,25 +37,3 @@ func (c *Configuration) LoadConfigurationFromFile(path string) (conf Configurati
 	}
 	return updateConfig(path)
 }
-
-// CompareConfigurations - compare two configuration structs.
-// Returns true if all configuration fields in struct 'a' are equal configuration fields in struct 'b'.
-// Return false if any configuration field is not equal or any of structs is empty.
-func CompareConfigurations(a, b *Configuration) bool {
-	if &a == &b {
-		return true
-	}
-	if (Configuration{}) == *a || (Configuration{}) == *b {
-		return false
-	}
-	if a.Project.Name != b.Project.Name || a.Project.Version != b.Project.Version {
-		return false
-	}
-	if a.GRPC.Host != b.GRPC.Host || a.GRPC.Port != b.GRPC.Port {
-		return false
-	}
-	if a.Gateway.Host != b.Gateway.Host || a.Gateway.Port != b.Gateway.Port {
-		return false
-	}
-	return true
-}
