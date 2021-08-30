@@ -1,0 +1,17 @@
+version: v1
+plugins:
+  - name: go
+    out: .
+    opt: module=github.com/ozonva/ova-journey-api
+  - name: go-grpc
+    out: .
+    opt: module=github.com/ozonva/ova-journey-api
+  - name: validate
+    out: .
+    opt: lang=go,module=github.com/ozonva/ova-journey-api
+  - name: grpc-gateway
+    out: .
+    opt: logtostderr=true,module=github.com/ozonva/ova-journey-api
+  - name: openapiv2
+    out: swagger
+    opt: allow_merge=true,merge_file_name=api

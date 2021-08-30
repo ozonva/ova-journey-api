@@ -1,14 +1,28 @@
 package config
 
 import (
-	"encoding/json"
+	"fmt"
+	"gopkg.in/yaml.v2"
 	"os"
 )
 
 // Configuration type represents application configuration
 type Configuration struct {
-	Host string `json:"host"`
-	Port uint   `json:"port"`
+	Project *ProjectConfiguration  `yaml:"project"`
+	GRPC    *EndpointConfiguration `yaml:"grpc"`
+	Gateway *EndpointConfiguration `yaml:"gateway"`
+}
+
+// ProjectConfiguration type represents configuration with information about project
+type ProjectConfiguration struct {
+	Name    string `yaml:"name"`
+	Version string `yaml:"version"`
+}
+
+// EndpointConfiguration type represents configuration for network endpoint (host and port)
+type EndpointConfiguration struct {
+	Host string `yaml:"host"`
+	Port int    `yaml:"port"`
 }
 
 // LoadConfigurationFromFile - method for load Configuration from JSON file.
@@ -27,11 +41,38 @@ func (c *Configuration) LoadConfigurationFromFile(path string) (conf Configurati
 			}
 		}()
 
-		decoder := json.NewDecoder(file)
+		decoder := yaml.NewDecoder(file)
 		if err = decoder.Decode(&conf); err != nil {
 			conf = Configuration{}
 		}
 		return
 	}
 	return updateConfig(path)
+}
+
+// CompareConfigurations - compare two configuration structs.
+// Returns true if all configuration fields in struct 'a' are equal configuration fields in struct 'b'.
+// Return false if any configuration field is not equal or any of structs is empty.
+func CompareConfigurations(a, b *Configuration) bool {
+	if &a == &b {
+		return true
+	}
+	if (Configuration{}) == *a || (Configuration{}) == *b {
+		return false
+	}
+	if a.Project.Name != b.Project.Name || a.Project.Version != b.Project.Version {
+		return false
+	}
+	if a.GRPC.Host != b.GRPC.Host || a.GRPC.Port != b.GRPC.Port {
+		return false
+	}
+	if a.Gateway.Host != b.Gateway.Host || a.Gateway.Port != b.Gateway.Port {
+		return false
+	}
+	return true
+}
+
+// GetEndpointAddress - returns string in format "hostname:port" for endpoint
+func (c *EndpointConfiguration) GetEndpointAddress() string {
+	return fmt.Sprintf("%s:%v", c.Host, c.Port)
 }

@@ -1,9 +1,10 @@
 package config
 
 import (
-	"log"
 	"sync"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 // ConfigurationUpdater type represents object for check Configuration updates in JSON file.
@@ -60,14 +61,14 @@ func (cu *ConfigurationUpdater) loadConfiguration() bool {
 
 	newConfig, err := cu.configuration.LoadConfigurationFromFile(cu.filePath)
 	if err != nil {
-		log.Printf("Error occurred while reading configuration file: %s", err)
+		log.Err(err).Msg("Error occurred while reading configuration file")
 	}
 	if (newConfig == Configuration{}) {
-		log.Panicf("Configration is empty")
+		log.Fatal().Msg("Configuration is empty")
 	}
-	if cu.configuration != newConfig {
+	if !CompareConfigurations(&cu.configuration, &newConfig) {
 		cu.configuration = newConfig
-		log.Printf("Configuration updated: %v", cu.configuration)
+		log.Info().Msg("Configuration updated")
 		return true
 	}
 

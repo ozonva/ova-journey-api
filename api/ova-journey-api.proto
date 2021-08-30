@@ -1,0 +1,75 @@
+syntax = "proto3";
+package ova.journey.api;
+
+option go_package = "github.com/ozonva/ova-journey-api/pkg/ova-journey-api;ova_journey_api";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "validate/validate.proto";
+import "google/api/annotations.proto";
+
+service JourneyApiV1{
+  rpc CreateJourneyV1(CreateJourneyRequestV1) returns (CreateJourneyResponseV1){
+    option (google.api.http) = {
+      post: "/v1/journeys"
+      body: "*"
+    };
+  }
+  rpc DescribeJourneyV1(DescribeJourneyRequestV1) returns (DescribeJourneyResponseV1){
+    option (google.api.http) = {
+      get: "/v1/journeys/{journey_id}"
+    };
+  }
+  rpc ListJourneysV1(ListJourneysRequestV1) returns (ListJourneysResponseV1){
+    option (google.api.http) = {
+      get: "/v1/journeys"
+    };
+  }
+  rpc RemoveJourneyV1(RemoveJourneyRequestV1) returns (google.protobuf.Empty){
+    option (google.api.http) = {
+      delete: "/v1/journeys/{journey_id}"
+    };
+  }
+}
+
+message Journey {
+  uint64 journey_id = 1;
+  uint64 user_id = 2;
+  string address = 3;
+  string description = 4;
+  google.protobuf.Timestamp start_time = 5;
+  google.protobuf.Timestamp end_time = 6;
+}
+
+message CreateJourneyRequestV1{
+  uint64 user_id = 1 [(validate.rules).uint64.gt = 0];
+  string address = 2;
+  string description = 3;
+  google.protobuf.Timestamp start_time = 4;
+  google.protobuf.Timestamp end_time = 5;
+}
+
+message CreateJourneyResponseV1{
+  uint64 journey_id = 1;
+}
+
+message DescribeJourneyRequestV1{
+  uint64 journey_id = 1 [(validate.rules).uint64.gt = 0];
+}
+
+message DescribeJourneyResponseV1{
+  Journey journey = 1;
+}
+
+message ListJourneysRequestV1{
+  uint64 offset = 1 [(validate.rules).uint64.gte = 0];
+  uint64 limit = 2 [(validate.rules).uint64.gt = 0];
+}
+
+message ListJourneysResponseV1{
+  repeated Journey journeys = 1;
+}
+
+message RemoveJourneyRequestV1{
+  uint64 journey_id = 1 [(validate.rules).uint64.gt = 0];
+}

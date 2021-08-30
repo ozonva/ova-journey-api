@@ -81,19 +81,19 @@ var _ = Describe("Saver", func() {
 			})
 
 			When("try to close on already closed saver", func() {
-				It("should return IsClosedError without attempts to flush", func() {
+				It("should return ErrSaverIsClosed without attempts to flush", func() {
 					mockFlusher.EXPECT().Flush(gomock.Any()).Times(0)
 
 					closeResult := s.Close()
 					Expect(closeResult).Should(BeNil())
 
 					closeResult = s.Close()
-					Expect(closeResult).Should(Equal(IsClosedError))
+					Expect(closeResult).Should(Equal(ErrSaverIsClosed))
 				})
 			})
 
 			When("try to save on closed saver", func() {
-				It("should return IsClosedError without attempts to flush", func() {
+				It("should return ErrSaverIsClosed without attempts to flush", func() {
 					mockFlusher.EXPECT().Flush(gomock.Any()).Times(0)
 
 					closeResult := s.Close()
@@ -101,13 +101,13 @@ var _ = Describe("Saver", func() {
 
 					for _, journey := range journeysTable {
 						result := s.Save(journey)
-						Expect(result).Should(Equal(IsClosedError))
+						Expect(result).Should(Equal(ErrSaverIsClosed))
 					}
 				})
 			})
 
 			When("try to save on closed saver after add one journey with success flushing", func() {
-				It("should return IsClosedError and try to flush 1 item", func() {
+				It("should return ErrSaverIsClosed and try to flush 1 item", func() {
 					mockFlusher.EXPECT().Flush(journeysTable[:1]).Times(1).Return(nil)
 
 					saveResult := s.Save(journeysTable[0])
@@ -117,20 +117,20 @@ var _ = Describe("Saver", func() {
 
 					for _, journey := range journeysTable {
 						result := s.Save(journey)
-						Expect(result).Should(Equal(IsClosedError))
+						Expect(result).Should(Equal(ErrSaverIsClosed))
 					}
 				})
 			})
 
 			When("try to close saver after add one journey with failed flushing", func() {
-				It("should return PartOfDataIsNotFlushedError for close", func() {
+				It("should return ErrPartOfDataIsNotFlushed for close", func() {
 					mockFlusher.EXPECT().Flush(journeysTable[:1]).Times(1).Return(journeysTable[:1])
 
 					saveResult := s.Save(journeysTable[0])
 					closeResult := s.Close()
 
 					Expect(saveResult).Should(BeNil())
-					Expect(closeResult).Should(Equal(PartOfDataIsNotFlushedError))
+					Expect(closeResult).Should(Equal(ErrPartOfDataIsNotFlushed))
 				})
 			})
 		})
@@ -173,7 +173,7 @@ var _ = Describe("Saver", func() {
 				})
 			})
 			When("delay between Save() calls is less then delay between flushing", func() {
-				It("should call flusher several times and return at least one InternalBufferIsFullError", func() {
+				It("should call flusher several times and return at least one ErrInternalBufferIsFull", func() {
 					flusherCallsLimit := len(journeysTable) / int(capacity)
 
 					if len(journeysTable)%int(capacity) > 0 {
@@ -203,7 +203,7 @@ var _ = Describe("Saver", func() {
 
 					wg.Wait()
 
-					Expect(results).Should(ContainElements(InternalBufferIsFullError))
+					Expect(results).Should(ContainElements(ErrInternalBufferIsFull))
 				})
 			})
 		})

@@ -28,10 +28,10 @@ func (j *Journey) String() string {
 }
 
 // NewJourney - creates new Journey object using arguments
-func NewJourney(journeyID uint64, userId uint64, address string, description string, startTime time.Time, endTime time.Time) *Journey {
+func NewJourney(journeyID uint64, userID uint64, address string, description string, startTime time.Time, endTime time.Time) *Journey {
 	return &Journey{
 		JourneyID:   journeyID,
-		UserID:      userId,
+		UserID:      userID,
 		Address:     address,
 		Description: description,
 		StartTime:   startTime,
