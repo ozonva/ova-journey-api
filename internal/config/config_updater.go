@@ -1,6 +1,7 @@
 package config
 
 import (
+	"reflect"
 	"sync"
 	"time"
 
@@ -66,7 +67,7 @@ func (cu *ConfigurationUpdater) loadConfiguration() bool {
 	if (newConfig == Configuration{}) {
 		log.Fatal().Msg("Configuration is empty")
 	}
-	if !CompareConfigurations(&cu.configuration, &newConfig) {
+	if !reflect.DeepEqual(&cu.configuration, &newConfig) {
 		cu.configuration = newConfig
 		log.Info().Msg("Configuration updated")
 		return true

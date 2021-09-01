@@ -1,6 +1,6 @@
 project:
   name: Journey API for Amazon Voice Assistant Project
-  version: v0.6.0
+  version: v0.7.0
 
 grpc:
   host: 0.0.0.0
@@ -10,3 +10,11 @@ gateway:
   host: 0.0.0.0
   port: 8080
 
+database:
+  host: database
+  port: 5432
+  user: postgres
+  password: postgres
+  name: ova_journey_api
+  sslMode: disable
+  driver: pgx

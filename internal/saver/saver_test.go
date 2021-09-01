@@ -4,6 +4,7 @@
 package saver
 
 import (
+	"context"
 	"fmt"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
@@ -21,6 +22,7 @@ var _ = Describe("Saver", func() {
 		s             Saver
 		capacity      uint
 		delayFlushing time.Duration
+		ctx           context.Context
 	)
 
 	journeysTable := []models.Journey{
@@ -34,6 +36,7 @@ var _ = Describe("Saver", func() {
 	BeforeEach(func() {
 		ctrl = gomock.NewController(GinkgoT())
 		mockFlusher = mocks.NewMockFlusher(ctrl)
+		ctx = context.Background()
 	})
 
 	AfterEach(func() {
@@ -82,7 +85,7 @@ var _ = Describe("Saver", func() {
 
 			When("try to close on already closed saver", func() {
 				It("should return ErrSaverIsClosed without attempts to flush", func() {
-					mockFlusher.EXPECT().Flush(gomock.Any()).Times(0)
+					mockFlusher.EXPECT().Flush(ctx, gomock.Any()).Times(0)
 
 					closeResult := s.Close()
 					Expect(closeResult).Should(BeNil())
@@ -94,7 +97,7 @@ var _ = Describe("Saver", func() {
 
 			When("try to save on closed saver", func() {
 				It("should return ErrSaverIsClosed without attempts to flush", func() {
-					mockFlusher.EXPECT().Flush(gomock.Any()).Times(0)
+					mockFlusher.EXPECT().Flush(ctx, gomock.Any()).Times(0)
 
 					closeResult := s.Close()
 					Expect(closeResult).Should(BeNil())
@@ -108,7 +111,7 @@ var _ = Describe("Saver", func() {
 
 			When("try to save on closed saver after add one journey with success flushing", func() {
 				It("should return ErrSaverIsClosed and try to flush 1 item", func() {
-					mockFlusher.EXPECT().Flush(journeysTable[:1]).Times(1).Return(nil)
+					mockFlusher.EXPECT().Flush(ctx, journeysTable[:1]).Times(1).Return(nil)
 
 					saveResult := s.Save(journeysTable[0])
 					closeResult := s.Close()
@@ -124,7 +127,7 @@ var _ = Describe("Saver", func() {
 
 			When("try to close saver after add one journey with failed flushing", func() {
 				It("should return ErrPartOfDataIsNotFlushed for close", func() {
-					mockFlusher.EXPECT().Flush(journeysTable[:1]).Times(1).Return(journeysTable[:1])
+					mockFlusher.EXPECT().Flush(ctx, journeysTable[:1]).Times(1).Return(journeysTable[:1])
 
 					saveResult := s.Save(journeysTable[0])
 					closeResult := s.Close()
@@ -148,7 +151,7 @@ var _ = Describe("Saver", func() {
 						flusherCallsLimit++
 					}
 					fmt.Println(flusherCallsLimit)
-					mockFlusher.EXPECT().Flush(gomock.Any()).MinTimes(flusherCallsLimit)
+					mockFlusher.EXPECT().Flush(ctx, gomock.Any()).MinTimes(flusherCallsLimit)
 
 					wg := sync.WaitGroup{}
 					wg.Add(1)
@@ -179,7 +182,7 @@ var _ = Describe("Saver", func() {
 					if len(journeysTable)%int(capacity) > 0 {
 						flusherCallsLimit++
 					}
-					mockFlusher.EXPECT().Flush(gomock.Any()).MaxTimes(flusherCallsLimit)
+					mockFlusher.EXPECT().Flush(ctx, gomock.Any()).MaxTimes(flusherCallsLimit)
 
 					results := make([]error, 0, len(journeysTable))
 

@@ -1,6 +1,7 @@
 package flusher
 
 import (
+	"context"
 	"errors"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
@@ -17,6 +18,7 @@ var _ = Describe("Flusher", func() {
 		f         Flusher
 		journeys  []models.Journey
 		chunkSize int
+		ctx       context.Context
 
 		journeysTable = []models.Journey{
 			{JourneyID: 0, UserID: 1, Address: "Воронеж", Description: ""},
@@ -31,6 +33,7 @@ var _ = Describe("Flusher", func() {
 	BeforeEach(func() {
 		ctrl = gomock.NewController(GinkgoT())
 		mockRepo = mocks.NewMockRepo(ctrl)
+		ctx = context.Background()
 	})
 
 	JustBeforeEach(func() {
@@ -51,10 +54,10 @@ var _ = Describe("Flusher", func() {
 				journeys = nil
 			})
 
-			It("should return nil and not call AddJourneys", func() {
-				mockRepo.EXPECT().AddJourneys(gomock.Any()).Times(0)
+			It("should return nil and not call AddJourneysMulti", func() {
+				mockRepo.EXPECT().AddJourneysMulti(ctx, gomock.Any()).Times(0)
 
-				result := f.Flush(journeys)
+				result := f.Flush(ctx, journeys)
 
 				Expect(result).Should(BeNil())
 			})
@@ -65,10 +68,10 @@ var _ = Describe("Flusher", func() {
 				journeys = []models.Journey{}
 			})
 
-			It("should return nil and not call AddJourneys", func() {
-				mockRepo.EXPECT().AddJourneys(gomock.Any()).Times(0)
+			It("should return nil and not call AddJourneysMulti", func() {
+				mockRepo.EXPECT().AddJourneysMulti(ctx, gomock.Any()).Times(0)
 
-				result := f.Flush(journeys)
+				result := f.Flush(ctx, journeys)
 
 				Expect(result).Should(BeNil())
 			})
@@ -81,10 +84,10 @@ var _ = Describe("Flusher", func() {
 			journeys = journeysTable
 		})
 
-		It("should return original slice and not call AddJourneys", func() {
-			mockRepo.EXPECT().AddJourneys(gomock.Any()).Times(0)
+		It("should return original slice and not call AddJourneysMulti", func() {
+			mockRepo.EXPECT().AddJourneysMulti(ctx, gomock.Any()).Times(0)
 
-			result := f.Flush(journeys)
+			result := f.Flush(ctx, journeys)
 
 			Expect(result).Should(Equal(journeys))
 		})
@@ -100,12 +103,12 @@ var _ = Describe("Flusher", func() {
 				chunkSize = 2
 			})
 
-			It("should return nil and call AddJourneys 3 times", func() {
-				mockRepo.EXPECT().AddJourneys(journeys[:2]).Times(1)
-				mockRepo.EXPECT().AddJourneys(journeys[2:4]).Times(1)
-				mockRepo.EXPECT().AddJourneys(journeys[4:]).Times(1)
+			It("should return nil and call AddJourneysMulti 3 times", func() {
+				mockRepo.EXPECT().AddJourneysMulti(ctx, journeys[:2]).Times(1)
+				mockRepo.EXPECT().AddJourneysMulti(ctx, journeys[2:4]).Times(1)
+				mockRepo.EXPECT().AddJourneysMulti(ctx, journeys[4:]).Times(1)
 
-				result := f.Flush(journeys)
+				result := f.Flush(ctx, journeys)
 
 				Expect(result).Should(BeNil())
 			})
@@ -116,10 +119,10 @@ var _ = Describe("Flusher", func() {
 				chunkSize = 7
 			})
 
-			It("should return nil and call AddJourneys 1 time", func() {
-				mockRepo.EXPECT().AddJourneys(journeys).Times(1)
+			It("should return nil and call AddJourneysMulti 1 time", func() {
+				mockRepo.EXPECT().AddJourneysMulti(ctx, journeys).Times(1)
 
-				result := f.Flush(journeys)
+				result := f.Flush(ctx, journeys)
 
 				Expect(result).Should(BeNil())
 			})
@@ -130,10 +133,10 @@ var _ = Describe("Flusher", func() {
 				chunkSize = 5
 			})
 
-			It("should return nil and call AddJourneys 1 time", func() {
-				mockRepo.EXPECT().AddJourneys(journeys).Times(1)
+			It("should return nil and call AddJourneysMulti 1 time", func() {
+				mockRepo.EXPECT().AddJourneysMulti(ctx, journeys).Times(1)
 
-				result := f.Flush(journeys)
+				result := f.Flush(ctx, journeys)
 
 				Expect(result).Should(BeNil())
 			})
@@ -148,24 +151,24 @@ var _ = Describe("Flusher", func() {
 		})
 
 		Context("on fail on second chunk", func() {
-			It("should return second chunk and call AddJourneys 3 times", func() {
-				mockRepo.EXPECT().AddJourneys(journeys[:2]).Times(1)
-				mockRepo.EXPECT().AddJourneys(journeys[2:4]).Times(1).Return(errRepo)
-				mockRepo.EXPECT().AddJourneys(journeys[4:]).Times(1)
+			It("should return second chunk and call AddJourneysMulti 3 times", func() {
+				mockRepo.EXPECT().AddJourneysMulti(ctx, journeys[:2]).Times(1)
+				mockRepo.EXPECT().AddJourneysMulti(ctx, journeys[2:4]).Times(1).Return(errRepo)
+				mockRepo.EXPECT().AddJourneysMulti(ctx, journeys[4:]).Times(1)
 
-				result := f.Flush(journeys)
+				result := f.Flush(ctx, journeys)
 
 				Expect(result).Should(Equal(journeys[2:4]))
 			})
 		})
 
 		Context("on fail on every chunk", func() {
-			It("should return original slice and call AddJourneys 3 times", func() {
-				mockRepo.EXPECT().AddJourneys(journeys[:2]).Times(1).Return(errRepo)
-				mockRepo.EXPECT().AddJourneys(journeys[2:4]).Times(1).Return(errRepo)
-				mockRepo.EXPECT().AddJourneys(journeys[4:]).Times(1).Return(errRepo)
+			It("should return original slice and call AddJourneysMulti 3 times", func() {
+				mockRepo.EXPECT().AddJourneysMulti(ctx, journeys[:2]).Times(1).Return(errRepo)
+				mockRepo.EXPECT().AddJourneysMulti(ctx, journeys[2:4]).Times(1).Return(errRepo)
+				mockRepo.EXPECT().AddJourneysMulti(ctx, journeys[4:]).Times(1).Return(errRepo)
 
-				result := f.Flush(journeys)
+				result := f.Flush(ctx, journeys)
 
 				Expect(result).Should(Equal(journeys))
 			})
