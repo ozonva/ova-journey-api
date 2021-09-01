@@ -39,9 +39,8 @@ func (r *repo) AddJourney(ctx context.Context, journey models.Journey) (uint64, 
 	var journeyID uint64
 	err := query.QueryRowContext(ctx).Scan(&journeyID)
 	if err != nil {
-		return journeyID, err
+		return 0, err
 	}
-
 	return journeyID, nil
 }
 
@@ -57,11 +56,8 @@ func (r *repo) AddJourneysMulti(ctx context.Context, journeys []models.Journey) 
 	}
 
 	_, err := query.ExecContext(ctx)
-	if err != nil {
-		return err
-	}
+	return err
 
-	return nil
 }
 
 func (r *repo) ListJourneys(ctx context.Context, limit, offset uint64) ([]models.Journey, error) {
@@ -133,9 +129,6 @@ func (r *repo) RemoveJourney(ctx context.Context, journeyID uint64) error {
 		RunWith(r.db).
 		PlaceholderFormat(squirrel.Dollar)
 
-	if _, err := query.ExecContext(ctx); err != nil {
-		return err
-	}
-
-	return nil
+	_, err := query.ExecContext(ctx)
+	return err
 }
