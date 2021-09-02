@@ -19,16 +19,18 @@ type GrpcServer struct {
 	db            *sqlx.DB
 	server        *grpc.Server
 	errChan       chan<- error
+	chunkSize     int
 }
 
 // NewGrpcServer - creates new GrpcServer with configuration endpoint
 //
 // and output channel to signalize about critical errors
-func NewGrpcServer(configuration *config.EndpointConfiguration, db *sqlx.DB, errChan chan<- error) *GrpcServer {
+func NewGrpcServer(configuration *config.EndpointConfiguration, db *sqlx.DB, chunkSize int, errChan chan<- error) *GrpcServer {
 	return &GrpcServer{
 		configuration: configuration,
 		db:            db,
 		errChan:       errChan,
+		chunkSize:     chunkSize,
 	}
 }
 
@@ -44,7 +46,7 @@ func (s *GrpcServer) Start() {
 	repository := repo.NewRepo(s.db)
 
 	s.server = grpc.NewServer()
-	desc.RegisterJourneyApiV1Server(s.server, api.NewJourneyAPI(repository))
+	desc.RegisterJourneyApiV1Server(s.server, api.NewJourneyAPI(repository, s.chunkSize))
 
 	go func() {
 		log.Debug().Msg("GRPC server: starting")

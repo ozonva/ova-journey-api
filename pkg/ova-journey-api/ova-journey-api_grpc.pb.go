@@ -23,6 +23,7 @@ type JourneyApiV1Client interface {
 	DescribeJourneyV1(ctx context.Context, in *DescribeJourneyRequestV1, opts ...grpc.CallOption) (*DescribeJourneyResponseV1, error)
 	ListJourneysV1(ctx context.Context, in *ListJourneysRequestV1, opts ...grpc.CallOption) (*ListJourneysResponseV1, error)
 	RemoveJourneyV1(ctx context.Context, in *RemoveJourneyRequestV1, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	MultiCreateJourneyV1(ctx context.Context, in *MultiCreateJourneyRequestV1, opts ...grpc.CallOption) (*MultiCreateJourneyResponseV1, error)
 }
 
 type journeyApiV1Client struct {
@@ -69,6 +70,15 @@ func (c *journeyApiV1Client) RemoveJourneyV1(ctx context.Context, in *RemoveJour
 	return out, nil
 }
 
+func (c *journeyApiV1Client) MultiCreateJourneyV1(ctx context.Context, in *MultiCreateJourneyRequestV1, opts ...grpc.CallOption) (*MultiCreateJourneyResponseV1, error) {
+	out := new(MultiCreateJourneyResponseV1)
+	err := c.cc.Invoke(ctx, "/ova.journey.api.JourneyApiV1/MultiCreateJourneyV1", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JourneyApiV1Server is the server API for JourneyApiV1 service.
 // All implementations must embed UnimplementedJourneyApiV1Server
 // for forward compatibility
@@ -77,6 +87,7 @@ type JourneyApiV1Server interface {
 	DescribeJourneyV1(context.Context, *DescribeJourneyRequestV1) (*DescribeJourneyResponseV1, error)
 	ListJourneysV1(context.Context, *ListJourneysRequestV1) (*ListJourneysResponseV1, error)
 	RemoveJourneyV1(context.Context, *RemoveJourneyRequestV1) (*emptypb.Empty, error)
+	MultiCreateJourneyV1(context.Context, *MultiCreateJourneyRequestV1) (*MultiCreateJourneyResponseV1, error)
 	mustEmbedUnimplementedJourneyApiV1Server()
 }
 
@@ -95,6 +106,9 @@ func (UnimplementedJourneyApiV1Server) ListJourneysV1(context.Context, *ListJour
 }
 func (UnimplementedJourneyApiV1Server) RemoveJourneyV1(context.Context, *RemoveJourneyRequestV1) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveJourneyV1 not implemented")
+}
+func (UnimplementedJourneyApiV1Server) MultiCreateJourneyV1(context.Context, *MultiCreateJourneyRequestV1) (*MultiCreateJourneyResponseV1, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MultiCreateJourneyV1 not implemented")
 }
 func (UnimplementedJourneyApiV1Server) mustEmbedUnimplementedJourneyApiV1Server() {}
 
@@ -181,6 +195,24 @@ func _JourneyApiV1_RemoveJourneyV1_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JourneyApiV1_MultiCreateJourneyV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MultiCreateJourneyRequestV1)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JourneyApiV1Server).MultiCreateJourneyV1(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ova.journey.api.JourneyApiV1/MultiCreateJourneyV1",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JourneyApiV1Server).MultiCreateJourneyV1(ctx, req.(*MultiCreateJourneyRequestV1))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // JourneyApiV1_ServiceDesc is the grpc.ServiceDesc for JourneyApiV1 service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -203,6 +235,10 @@ var JourneyApiV1_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveJourneyV1",
 			Handler:    _JourneyApiV1_RemoveJourneyV1_Handler,
+		},
+		{
+			MethodName: "MultiCreateJourneyV1",
+			Handler:    _JourneyApiV1_MultiCreateJourneyV1_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

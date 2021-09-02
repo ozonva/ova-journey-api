@@ -72,5 +72,9 @@ clean:
 lint:
 	golangci-lint run
 
+.PHONY: docker-build
+docker-build:
+	docker-compose build
+
 .PHONY: all
 all: clean bin-deps deps generate lint test build

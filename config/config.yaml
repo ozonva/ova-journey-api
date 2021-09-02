@@ -18,3 +18,5 @@ database:
   name: ova_journey_api
   sslMode: disable
   driver: pgx
+
+chunkSize: 2

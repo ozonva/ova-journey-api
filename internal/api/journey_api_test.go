@@ -22,6 +22,7 @@ var _ = Describe("JourneyApi", func() {
 		api      desc.JourneyApiV1Server
 		ctx      context.Context
 
+		chunkSize     = 2
 		timeStart     = time.Date(2021, 01, 01, 0, 0, 0, 0, time.UTC)
 		timeEnd       = time.Date(2021, 01, 02, 0, 0, 0, 0, time.UTC)
 		journeysTable = []models.Journey{
@@ -39,7 +40,7 @@ var _ = Describe("JourneyApi", func() {
 	})
 
 	JustBeforeEach(func() {
-		api = NewJourneyAPI(mockRepo)
+		api = NewJourneyAPI(mockRepo, chunkSize)
 	})
 
 	AfterEach(func() {
@@ -92,6 +93,77 @@ var _ = Describe("JourneyApi", func() {
 				})
 
 				Expect(result).Should(BeNil())
+				Expect(err).Should(HaveOccurred())
+			})
+		})
+	})
+
+	Context("MultiCreateJourneyV1", func() {
+		var journeysTableZeroIds []models.Journey
+
+		BeforeSuite(func() {
+			journeysTableZeroIds = make([]models.Journey, len(journeysTable))
+			copy(journeysTableZeroIds, journeysTable)
+			for i := range journeysTableZeroIds {
+				journeysTableZeroIds[i].JourneyID = 0
+			}
+		})
+
+		Context("Success create journeys", func() {
+			It("should return success result with new journey ids", func() {
+				newJourneyIDs := []uint64{1, 2, 3}
+
+				mockRepo.EXPECT().MultiAddJourneys(ctx, journeysTableZeroIds[0:2]).Return(newJourneyIDs[0:2], nil).Times(1)
+				mockRepo.EXPECT().MultiAddJourneys(ctx, journeysTableZeroIds[2:]).Return(newJourneyIDs[2:], nil).Times(1)
+
+				req := &desc.MultiCreateJourneyRequestV1{}
+				for _, journey := range journeysTable {
+					req.Journeys = append(req.Journeys, &desc.CreateJourneyRequestV1{
+						UserId:    journey.UserID,
+						Address:   journey.Address,
+						StartTime: timestamppb.New(journey.StartTime),
+						EndTime:   timestamppb.New(journey.EndTime),
+					})
+				}
+
+				result, err := api.MultiCreateJourneyV1(ctx, req)
+
+				Expect(result.JourneyIds).Should(Equal(newJourneyIDs))
+				Expect(err).Should(BeNil())
+			})
+		})
+
+		Context("Incorrect journeys count in request", func() {
+			It("should return error without calling repo", func() {
+				mockRepo.EXPECT().MultiAddJourneys(ctx, gomock.Any()).Times(0)
+
+				result, err := api.MultiCreateJourneyV1(ctx, &desc.MultiCreateJourneyRequestV1{})
+
+				Expect(result).Should(BeNil())
+				Expect(err).Should(HaveOccurred())
+			})
+		})
+
+		Context("Error in repo", func() {
+			It("should return error with added ids", func() {
+				newJourneyIDs := []uint64{1, 2, 3}
+
+				mockRepo.EXPECT().MultiAddJourneys(ctx, journeysTableZeroIds[0:2]).Return(newJourneyIDs[0:2], nil).Times(1)
+				mockRepo.EXPECT().MultiAddJourneys(ctx, journeysTableZeroIds[2:]).Return(nil, errRepo).Times(1)
+
+				req := &desc.MultiCreateJourneyRequestV1{}
+				for _, journey := range journeysTable {
+					req.Journeys = append(req.Journeys, &desc.CreateJourneyRequestV1{
+						UserId:    journey.UserID,
+						Address:   journey.Address,
+						StartTime: timestamppb.New(journey.StartTime),
+						EndTime:   timestamppb.New(journey.EndTime),
+					})
+				}
+
+				result, err := api.MultiCreateJourneyV1(ctx, req)
+
+				Expect(result.JourneyIds).Should(Equal(newJourneyIDs[0:2]))
 				Expect(err).Should(HaveOccurred())
 			})
 		})

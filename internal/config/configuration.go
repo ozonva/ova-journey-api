@@ -7,10 +7,11 @@ import (
 
 // Configuration type represents application configuration
 type Configuration struct {
-	Project  *ProjectConfiguration  `yaml:"project"`
-	GRPC     *EndpointConfiguration `yaml:"grpc"`
-	Gateway  *EndpointConfiguration `yaml:"gateway"`
-	Database *DatabaseConfiguration `yaml:"database"`
+	Project   *ProjectConfiguration  `yaml:"project"`
+	GRPC      *EndpointConfiguration `yaml:"grpc"`
+	Gateway   *EndpointConfiguration `yaml:"gateway"`
+	Database  *DatabaseConfiguration `yaml:"database"`
+	ChunkSize int                    `yaml:"chunkSize"`
 }
 
 // LoadConfigurationFromFile - method for load Configuration from JSON file.

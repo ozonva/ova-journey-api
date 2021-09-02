@@ -45,6 +45,7 @@ func TestConfiguration_LoadConfigurationFromFile(t *testing.T) {
 						SslMode:  "disable",
 						Driver:   "pgx",
 					},
+					ChunkSize: 2,
 				},
 				err: nil,
 			},

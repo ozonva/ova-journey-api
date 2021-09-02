@@ -30,6 +30,12 @@ service JourneyApiV1{
       delete: "/v1/journeys/{journey_id}"
     };
   }
+  rpc MultiCreateJourneyV1(MultiCreateJourneyRequestV1) returns (MultiCreateJourneyResponseV1){
+    option (google.api.http) = {
+      post: "/v1/journeys/multi"
+      body: "*"
+    };
+  }
 }
 
 message Journey {
@@ -72,4 +78,11 @@ message ListJourneysResponseV1{
 
 message RemoveJourneyRequestV1{
   uint64 journey_id = 1 [(validate.rules).uint64.gt = 0];
+}
+
+message MultiCreateJourneyRequestV1{
+  repeated CreateJourneyRequestV1 journeys = 1 [(validate.rules).repeated.min_items = 1];
+}
+message MultiCreateJourneyResponseV1{
+  repeated uint64 journey_ids = 1;
 }

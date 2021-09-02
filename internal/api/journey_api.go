@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"github.com/ozonva/ova-journey-api/internal/repo"
+	"github.com/ozonva/ova-journey-api/internal/utils"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/rs/zerolog/log"
@@ -17,13 +18,15 @@ import (
 // JourneyAPI - gRPC API implementation for working with journeys
 type JourneyAPI struct {
 	desc.UnimplementedJourneyApiV1Server
-	repo repo.Repo
+	repo      repo.Repo
+	chunkSize int
 }
 
 // NewJourneyAPI returns JourneyAPI
-func NewJourneyAPI(repo repo.Repo) desc.JourneyApiV1Server {
+func NewJourneyAPI(repo repo.Repo, chunkSize int) desc.JourneyApiV1Server {
 	return &JourneyAPI{
-		repo: repo,
+		repo:      repo,
+		chunkSize: chunkSize,
 	}
 }
 
@@ -50,6 +53,49 @@ func (a *JourneyAPI) CreateJourneyV1(ctx context.Context, req *desc.CreateJourne
 
 	log.Debug().Str("journey", journey.String()).Msg("CreateJourneyV1: success.")
 	return &desc.CreateJourneyResponseV1{JourneyId: journeyID}, nil
+}
+
+// MultiCreateJourneyV1 - create new journeys using chunks and return added journeys ids.
+// If there is error for any chunk returns already added ids and error.
+func (a *JourneyAPI) MultiCreateJourneyV1(ctx context.Context, req *desc.MultiCreateJourneyRequestV1) (*desc.MultiCreateJourneyResponseV1, error) {
+	if err := req.Validate(); err != nil {
+		log.Error().Err(err).Msg("MultiCreateJourneyV1: invalid request.")
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	journeys := make([]models.Journey, len(req.Journeys))
+
+	for i, reqJourney := range req.Journeys {
+		journeys[i] = models.Journey{
+			UserID:      reqJourney.UserId,
+			Address:     reqJourney.Address,
+			Description: reqJourney.Description,
+			StartTime:   reqJourney.StartTime.AsTime(),
+			EndTime:     reqJourney.EndTime.AsTime(),
+		}
+	}
+
+	journeysChunks, err := utils.SplitToChunks(journeys, a.chunkSize)
+	if err != nil {
+		if err != nil {
+			log.Error().Err(err).Msg("MultiCreateJourneyV1: failed.")
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	resp := &desc.MultiCreateJourneyResponseV1{}
+	for _, chunk := range journeysChunks {
+		ids, err := a.repo.MultiAddJourneys(ctx, chunk)
+		if err != nil {
+			log.Error().Err(err).Msg("MultiCreateJourneyV1: failed.")
+			return resp, status.Error(codes.Internal, err.Error())
+		}
+		resp.JourneyIds = append(resp.JourneyIds, ids...)
+	}
+
+	log.Debug().Msg("MultiCreateJourneyV1: success.")
+
+	return resp, nil
 }
 
 // DescribeJourneyV1 - get journey description by journeyID

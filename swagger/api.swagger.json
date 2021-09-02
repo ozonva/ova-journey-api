@@ -84,6 +84,38 @@
         ]
       }
     },
+    "/v1/journeys/multi": {
+      "post": {
+        "operationId": "JourneyApiV1_MultiCreateJourneyV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiMultiCreateJourneyResponseV1"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiMultiCreateJourneyRequestV1"
+            }
+          }
+        ],
+        "tags": [
+          "JourneyApiV1"
+        ]
+      }
+    },
     "/v1/journeys/{journeyId}": {
       "get": {
         "operationId": "JourneyApiV1_DescribeJourneyV1",
@@ -220,6 +252,29 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/apiJourney"
+          }
+        }
+      }
+    },
+    "apiMultiCreateJourneyRequestV1": {
+      "type": "object",
+      "properties": {
+        "journeys": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiCreateJourneyRequestV1"
+          }
+        }
+      }
+    },
+    "apiMultiCreateJourneyResponseV1": {
+      "type": "object",
+      "properties": {
+        "journeyIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uint64"
           }
         }
       }

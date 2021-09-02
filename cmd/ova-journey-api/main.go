@@ -65,7 +65,7 @@ func startApp(c *config.Configuration, errChan chan<- error) (*sqlx.DB, *server.
 		log.Fatal().Err(err).Msg("Cannot establish connection to database")
 		return nil, nil, nil
 	}
-	grpcServer := server.NewGrpcServer(c.GRPC, db, errChan)
+	grpcServer := server.NewGrpcServer(c.GRPC, db, c.ChunkSize, errChan)
 	gatewayServer := server.NewGatewayServer(c.Gateway, c.GRPC, errChan)
 	grpcServer.Start()
 	gatewayServer.Start()
