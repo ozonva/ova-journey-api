@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"github.com/opentracing/opentracing-go"
+	"github.com/ozonva/ova-journey-api/internal/kafka"
 	"github.com/ozonva/ova-journey-api/internal/models"
 	"github.com/ozonva/ova-journey-api/internal/repo"
 	"github.com/ozonva/ova-journey-api/internal/utils"
@@ -18,19 +19,21 @@ import (
 type JourneyAPI struct {
 	desc.UnimplementedJourneyApiV1Server
 	repo      repo.Repo
+	producer  kafka.Producer
 	chunkSize int
 }
 
 // NewJourneyAPI returns JourneyAPI
-func NewJourneyAPI(repo repo.Repo, chunkSize int) desc.JourneyApiV1Server {
+func NewJourneyAPI(repo repo.Repo, producer kafka.Producer, chunkSize int) desc.JourneyApiV1Server {
 	return &JourneyAPI{
 		repo:      repo,
+		producer:  producer,
 		chunkSize: chunkSize,
 	}
 }
 
 // CreateJourneyV1 - create new journey
-func (a *JourneyAPI) CreateJourneyV1(ctx context.Context, req *desc.CreateJourneyRequestV1) (*desc.CreateJourneyResponseV1, error) {
+func (api *JourneyAPI) CreateJourneyV1(ctx context.Context, req *desc.CreateJourneyRequestV1) (*desc.CreateJourneyResponseV1, error) {
 	if err := req.Validate(); err != nil {
 		log.Error().Err(err).Msg("CreateJourneyV1: invalid request.")
 		return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -44,7 +47,7 @@ func (a *JourneyAPI) CreateJourneyV1(ctx context.Context, req *desc.CreateJourne
 		EndTime:     req.EndTime.AsTime(),
 	}
 
-	journeyID, err := a.repo.AddJourney(ctx, journey)
+	journeyID, err := api.repo.AddJourney(ctx, journey)
 	if err != nil {
 		log.Error().Err(err).Str("journey", journey.String()).Msg("CreateJourneyV1: failed.")
 		return nil, status.Error(codes.Internal, err.Error())
@@ -56,7 +59,7 @@ func (a *JourneyAPI) CreateJourneyV1(ctx context.Context, req *desc.CreateJourne
 
 // MultiCreateJourneyV1 - create new journeys using chunks and return added journeys ids.
 // If there is error for any chunk returns already added ids and error.
-func (a *JourneyAPI) MultiCreateJourneyV1(ctx context.Context, req *desc.MultiCreateJourneyRequestV1) (*desc.MultiCreateJourneyResponseV1, error) {
+func (api *JourneyAPI) MultiCreateJourneyV1(ctx context.Context, req *desc.MultiCreateJourneyRequestV1) (*desc.MultiCreateJourneyResponseV1, error) {
 	if err := req.Validate(); err != nil {
 		log.Error().Err(err).Msg("MultiCreateJourneyV1: invalid request.")
 		return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -78,7 +81,7 @@ func (a *JourneyAPI) MultiCreateJourneyV1(ctx context.Context, req *desc.MultiCr
 		}
 	}
 
-	journeysChunks, err := utils.SplitToChunks(journeys, a.chunkSize)
+	journeysChunks, err := utils.SplitToChunks(journeys, api.chunkSize)
 	if err != nil {
 		if err != nil {
 			log.Error().Err(err).Msg("MultiCreateJourneyV1: failed.")
@@ -88,7 +91,7 @@ func (a *JourneyAPI) MultiCreateJourneyV1(ctx context.Context, req *desc.MultiCr
 
 	resp := &desc.MultiCreateJourneyResponseV1{}
 	for _, chunk := range journeysChunks {
-		ids, err := a.repo.MultiAddJourneys(ctx, chunk)
+		ids, err := api.repo.MultiAddJourneys(ctx, chunk)
 		if err != nil {
 			log.Error().Err(err).Msg("MultiCreateJourneyV1: failed.")
 			return resp, status.Error(codes.Internal, err.Error())
@@ -109,13 +112,13 @@ func (a *JourneyAPI) MultiCreateJourneyV1(ctx context.Context, req *desc.MultiCr
 }
 
 // DescribeJourneyV1 - get journey description by journeyID
-func (a *JourneyAPI) DescribeJourneyV1(ctx context.Context, req *desc.DescribeJourneyRequestV1) (*desc.DescribeJourneyResponseV1, error) {
+func (api *JourneyAPI) DescribeJourneyV1(ctx context.Context, req *desc.DescribeJourneyRequestV1) (*desc.DescribeJourneyResponseV1, error) {
 	if err := req.Validate(); err != nil {
 		log.Error().Err(err).Msg("DescribeJourneyV1: invalid request.")
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	journey, err := a.repo.DescribeJourney(ctx, req.JourneyId)
+	journey, err := api.repo.DescribeJourney(ctx, req.JourneyId)
 	if err != nil {
 		log.Error().Err(err).Uint64("journeyId", req.JourneyId).Msg("DescribeJourneyV1: failed.")
 		return nil, status.Error(codes.Internal, err.Error())
@@ -135,13 +138,13 @@ func (a *JourneyAPI) DescribeJourneyV1(ctx context.Context, req *desc.DescribeJo
 }
 
 // ListJourneysV1 - get list of journey with offset and limit
-func (a *JourneyAPI) ListJourneysV1(ctx context.Context, req *desc.ListJourneysRequestV1) (*desc.ListJourneysResponseV1, error) {
+func (api *JourneyAPI) ListJourneysV1(ctx context.Context, req *desc.ListJourneysRequestV1) (*desc.ListJourneysResponseV1, error) {
 	if err := req.Validate(); err != nil {
 		log.Error().Err(err).Msg("ListJourneysV1: invalid request.")
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	journeys, err := a.repo.ListJourneys(ctx, req.Limit, req.Offset)
+	journeys, err := api.repo.ListJourneys(ctx, req.Limit, req.Offset)
 	if err != nil {
 		log.Error().Err(err).Uint64("offset", req.Offset).Uint64("limit", req.Limit).Msg("ListJourneysV1: failed.")
 		return nil, status.Error(codes.Internal, err.Error())
@@ -164,13 +167,13 @@ func (a *JourneyAPI) ListJourneysV1(ctx context.Context, req *desc.ListJourneysR
 }
 
 // RemoveJourneyV1 - remove journey
-func (a *JourneyAPI) RemoveJourneyV1(ctx context.Context, req *desc.RemoveJourneyRequestV1) (*emptypb.Empty, error) {
+func (api *JourneyAPI) RemoveJourneyV1(ctx context.Context, req *desc.RemoveJourneyRequestV1) (*emptypb.Empty, error) {
 	if err := req.Validate(); err != nil {
 		log.Error().Err(err).Msg("RemoveJourneyV1: invalid request.")
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	if err := a.repo.RemoveJourney(ctx, req.JourneyId); err != nil {
+	if err := api.repo.RemoveJourney(ctx, req.JourneyId); err != nil {
 		log.Error().Err(err).Uint64("journeyId", req.JourneyId).Msg("RemoveJourneyV1: failed.")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -180,7 +183,7 @@ func (a *JourneyAPI) RemoveJourneyV1(ctx context.Context, req *desc.RemoveJourne
 }
 
 // UpdateJourneyV1 - find journey by id and update another fields
-func (a *JourneyAPI) UpdateJourneyV1(ctx context.Context, req *desc.UpdateJourneyRequestV1) (*emptypb.Empty, error) {
+func (api *JourneyAPI) UpdateJourneyV1(ctx context.Context, req *desc.UpdateJourneyRequestV1) (*emptypb.Empty, error) {
 	if err := req.Validate(); err != nil {
 		log.Error().Err(err).Msg("UpdateJourneyV1: invalid request.")
 		return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -194,11 +197,142 @@ func (a *JourneyAPI) UpdateJourneyV1(ctx context.Context, req *desc.UpdateJourne
 		StartTime:   req.Journey.StartTime.AsTime(),
 		EndTime:     req.Journey.EndTime.AsTime(),
 	}
-	if err := a.repo.UpdateJourney(ctx, journey); err != nil {
+	if err := api.repo.UpdateJourney(ctx, journey); err != nil {
 		log.Error().Err(err).Str("journey", req.Journey.String()).Msg("UpdateJourneyV1: failed.")
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	log.Debug().Uint64("journeyId", req.Journey.JourneyId).Msg("UpdateJourneyV1: success.")
+	return &emptypb.Empty{}, nil
+}
+
+// CreateJourneyTaskV1 - create new journey using producer
+func (api *JourneyAPI) CreateJourneyTaskV1(ctx context.Context, req *desc.CreateJourneyTaskRequestV1) (*emptypb.Empty, error) {
+	if err := req.Validate(); err != nil {
+		log.Error().Err(err).Msg("CreateJourneyTaskV1: invalid request.")
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	journey := models.Journey{
+		UserID:      req.UserId,
+		Address:     req.Address,
+		Description: req.Description,
+		StartTime:   req.StartTime.AsTime(),
+		EndTime:     req.EndTime.AsTime(),
+	}
+
+	err := api.producer.Send(kafka.Message{
+		MessageType: kafka.CreateJourney,
+		Value:       journey,
+	})
+
+	if err != nil {
+		log.Error().Err(err).Str("journey", journey.String()).Msg("CreateJourneyTaskV1: failed.")
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	log.Debug().Str("journey", journey.String()).Msg("CreateJourneyTaskV1: success.")
+	return &emptypb.Empty{}, nil
+}
+
+// MultiCreateJourneyTaskV1 - create new journeys using producer and splitting on chunks
+func (api *JourneyAPI) MultiCreateJourneyTaskV1(ctx context.Context, req *desc.MultiCreateJourneyTaskRequestV1) (*emptypb.Empty, error) {
+	if err := req.Validate(); err != nil {
+		log.Error().Err(err).Msg("MultiCreateJourneyTaskV1: invalid request.")
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	tracer := opentracing.GlobalTracer()
+	span := tracer.StartSpan("MultiCreateJourneyTaskV1")
+	defer span.Finish()
+
+	journeys := make([]models.Journey, len(req.Journeys))
+
+	for i, reqJourney := range req.Journeys {
+		journeys[i] = models.Journey{
+			UserID:      reqJourney.UserId,
+			Address:     reqJourney.Address,
+			Description: reqJourney.Description,
+			StartTime:   reqJourney.StartTime.AsTime(),
+			EndTime:     reqJourney.EndTime.AsTime(),
+		}
+	}
+
+	journeysChunks, err := utils.SplitToChunks(journeys, api.chunkSize)
+	if err != nil {
+		if err != nil {
+			log.Error().Err(err).Msg("MultiCreateJourneyTaskV1: failed.")
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+
+	for _, chunk := range journeysChunks {
+		err = api.producer.Send(kafka.Message{
+			MessageType: kafka.MultiCreateJourney,
+			Value:       chunk,
+		})
+		if err != nil {
+			log.Error().Err(err).Msg("MultiCreateJourneyTaskV1: failed.")
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+
+		childSpan := tracer.StartSpan(
+			"MultiCreateJourneyTaskV1: chunk",
+			opentracing.Tag{Key: "chunkSize", Value: len(chunk)},
+			opentracing.ChildOf(span.Context()),
+		)
+		childSpan.Finish()
+	}
+
+	log.Debug().Msg("MultiCreateJourneyTaskV1: success send to producer.")
+
+	return &emptypb.Empty{}, nil
+}
+
+// RemoveJourneyTaskV1 - remove journey using producer
+func (api *JourneyAPI) RemoveJourneyTaskV1(ctx context.Context, req *desc.RemoveJourneyTaskRequestV1) (*emptypb.Empty, error) {
+	if err := req.Validate(); err != nil {
+		log.Error().Err(err).Msg("RemoveJourneyTaskV1: invalid request.")
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	err := api.producer.Send(kafka.Message{
+		MessageType: kafka.DeleteJourney,
+		Value:       req.JourneyId,
+	})
+	if err != nil {
+		log.Error().Err(err).Uint64("journeyId", req.JourneyId).Msg("RemoveJourneyTaskV1: failed.")
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	log.Debug().Msg("RemoveJourneyTaskV1: success.")
+	return &emptypb.Empty{}, nil
+}
+
+// UpdateJourneyTaskV1 - find journey by id and update another fields using producer
+func (api *JourneyAPI) UpdateJourneyTaskV1(ctx context.Context, req *desc.UpdateJourneyTaskRequestV1) (*emptypb.Empty, error) {
+	if err := req.Validate(); err != nil {
+		log.Error().Err(err).Msg("UpdateJourneyTaskV1: invalid request.")
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	journey := models.Journey{
+		JourneyID:   req.Journey.JourneyId,
+		UserID:      req.Journey.UserId,
+		Address:     req.Journey.Address,
+		Description: req.Journey.Description,
+		StartTime:   req.Journey.StartTime.AsTime(),
+		EndTime:     req.Journey.EndTime.AsTime(),
+	}
+	err := api.producer.Send(kafka.Message{
+		MessageType: kafka.UpdateJourney,
+		Value:       journey,
+	})
+	if err != nil {
+		log.Error().Err(err).Str("journey", req.Journey.String()).Msg("UpdateJourneyTaskV1: failed.")
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	log.Debug().Uint64("journeyId", req.Journey.JourneyId).Msg("UpdateJourneyTaskV1: success.")
 	return &emptypb.Empty{}, nil
 }

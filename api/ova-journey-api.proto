@@ -42,6 +42,30 @@ service JourneyApiV1{
       body: "*"
     };
   }
+
+  rpc CreateJourneyTaskV1(CreateJourneyTaskRequestV1) returns (google.protobuf.Empty){
+    option (google.api.http) = {
+      post: "/v1/journeys/task"
+      body: "*"
+    };
+  }
+  rpc RemoveJourneyTaskV1(RemoveJourneyTaskRequestV1) returns (google.protobuf.Empty){
+    option (google.api.http) = {
+      delete: "/v1/journeys/task/{journey_id}"
+    };
+  }
+  rpc MultiCreateJourneyTaskV1(MultiCreateJourneyTaskRequestV1) returns (google.protobuf.Empty){
+    option (google.api.http) = {
+      post: "/v1/journeys/task/multi"
+      body: "*"
+    };
+  }
+  rpc UpdateJourneyTaskV1(UpdateJourneyTaskRequestV1) returns (google.protobuf.Empty){
+    option (google.api.http) = {
+      put: "/v1/journeys/task"
+      body: "*"
+    };
+  }
 }
 
 message Journey {
@@ -95,5 +119,25 @@ message MultiCreateJourneyResponseV1{
 }
 
 message UpdateJourneyRequestV1{
+  Journey journey = 1 [(validate.rules).message.required = true];
+}
+
+message CreateJourneyTaskRequestV1{
+  uint64 user_id = 1 [(validate.rules).uint64.gt = 0];
+  string address = 2;
+  string description = 3;
+  google.protobuf.Timestamp start_time = 4;
+  google.protobuf.Timestamp end_time = 5;
+}
+
+message RemoveJourneyTaskRequestV1{
+  uint64 journey_id = 1 [(validate.rules).uint64.gt = 0];
+}
+
+message MultiCreateJourneyTaskRequestV1{
+  repeated CreateJourneyRequestV1 journeys = 1 [(validate.rules).repeated.min_items = 1];
+}
+
+message UpdateJourneyTaskRequestV1{
   Journey journey = 1 [(validate.rules).message.required = true];
 }

@@ -13,6 +13,7 @@ type Configuration struct {
 	Database  *DatabaseConfiguration `yaml:"database"`
 	ChunkSize int                    `yaml:"chunkSize"`
 	Jaeger    *EndpointConfiguration `yaml:"jaeger"`
+	Kafka     *KafkaConfiguration    `yaml:"kafka"`
 }
 
 // LoadConfigurationFromFile - method for load Configuration from JSON file.

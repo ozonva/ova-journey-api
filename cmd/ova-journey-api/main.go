@@ -15,6 +15,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/ozonva/ova-journey-api/internal/config"
+	"github.com/ozonva/ova-journey-api/internal/kafka"
 	"github.com/ozonva/ova-journey-api/internal/server"
 )
 
@@ -29,6 +30,7 @@ var (
 	grpc         *server.GrpcServer
 	gateway      *server.GatewayServer
 	tracerCloser io.Closer
+	producer     kafka.Producer
 )
 
 func main() {
@@ -68,15 +70,21 @@ func main() {
 }
 
 func startApp(c *config.Configuration, errChan chan<- error) {
+	var err error
+
 	tracerCloser = tracer.InitTracer(c.Project.Name, c.Jaeger)
 
-	var err error
+	producer, err = kafka.NewProducer(c.Kafka)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Cannot create Kafka producer")
+	}
+
 	db, err = createDb(c.Database)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Cannot establish connection to database")
 	}
 
-	grpc = server.NewGrpcServer(c.GRPC, db, c.ChunkSize, errChan)
+	grpc = server.NewGrpcServer(c.GRPC, producer, db, c.ChunkSize, errChan)
 	gateway = server.NewGatewayServer(c.Gateway, c.GRPC, errChan)
 
 	grpc.Start()
@@ -88,6 +96,10 @@ func stopApp() {
 	grpc.Stop()
 	if err := db.Close(); err != nil {
 		log.Fatal().Err(err).Msg("Database close error")
+	}
+
+	if err := producer.Close(); err != nil {
+		log.Fatal().Err(err).Msg("Kafka producer close error")
 	}
 
 	if err := tracerCloser.Close(); err != nil {

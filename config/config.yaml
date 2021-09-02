@@ -24,3 +24,8 @@ chunkSize: 2
 jaeger:
   host: jaeger
   port: 6831
+
+kafka:
+  topic: "ova-journey-api"
+  brokers:
+    - "kafka:9092"
