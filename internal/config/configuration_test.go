@@ -50,6 +50,15 @@ func TestConfiguration_LoadConfigurationFromFile(t *testing.T) {
 						Host: "jaeger",
 						Port: 6831,
 					},
+					Kafka: &KafkaConfiguration{
+						Topic:   "ova-journey-api",
+						Brokers: []string{"kafka:9092"},
+					},
+					Prometheus: &PrometheusConfiguration{
+						Host: "0.0.0.0",
+						Port: 9100,
+						Path: "/metrics",
+					},
 				},
 				err: nil,
 			},

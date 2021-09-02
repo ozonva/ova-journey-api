@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/ozonva/ova-journey-api/internal/metrics"
 	"github.com/ozonva/ova-journey-api/internal/tracer"
 	"io"
 	"os"
@@ -31,6 +32,8 @@ var (
 	gateway      *server.GatewayServer
 	tracerCloser io.Closer
 	producer     kafka.Producer
+	metricServer *server.MetricsServer
+	metric       metrics.Metrics
 )
 
 func main() {
@@ -43,6 +46,8 @@ func main() {
 	cu := config.NewConfigurationUpdater(ConfigUpdatePeriod, ConfigFile)
 	configuration := cu.GetConfiguration()
 	log.Info().Str("version", configuration.Project.Version).Msg("Starting ova-journey-api")
+
+	metric = metrics.NewMetrics("ova_journey_api", "gRPC_server")
 
 	startApp(configuration, errChan)
 
@@ -84,9 +89,11 @@ func startApp(c *config.Configuration, errChan chan<- error) {
 		log.Fatal().Err(err).Msg("Cannot establish connection to database")
 	}
 
-	grpc = server.NewGrpcServer(c.GRPC, producer, db, c.ChunkSize, errChan)
+	metricServer = server.NewMetricsServer(c.Prometheus)
+	grpc = server.NewGrpcServer(c.GRPC, producer, db, metric, c.ChunkSize, errChan)
 	gateway = server.NewGatewayServer(c.Gateway, c.GRPC, errChan)
 
+	metricServer.Start()
 	grpc.Start()
 	gateway.Start()
 }
@@ -94,6 +101,7 @@ func startApp(c *config.Configuration, errChan chan<- error) {
 func stopApp() {
 	gateway.Stop()
 	grpc.Stop()
+	metricServer.Stop()
 	if err := db.Close(); err != nil {
 		log.Fatal().Err(err).Msg("Database close error")
 	}

@@ -13,7 +13,7 @@ services:
       - ova-journey-api-network
     ports:
       - "8080:8080"
-      - "9090:9090"
+      - "8081:8081"
 
   database:
     image: postgres:13
@@ -73,12 +73,25 @@ services:
     networks:
       - ova-journey-api-network
     ports:
-      - "9093:9093"
+      - "8082:8082"
     environment:
       - KAFKA_CLUSTERS_0_NAME=local
       - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
       - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
-      - SERVER_PORT=9093
+      - SERVER_PORT=8082
+
+  prometheus:
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    depends_on:
+      - ova-journey-api
+    networks:
+      - ova-journey-api-network
+    volumes:
+      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+    ports:
+      - "9090:9090"
+
 
 networks:
   ova-journey-api-network:

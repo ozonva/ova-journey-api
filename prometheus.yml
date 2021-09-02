@@ -1,0 +1,8 @@
+global:
+  scrape_interval:     10s
+
+scrape_configs:
+  - job_name: 'ova-journey-api'
+    static_configs:
+      - targets:
+          - ova-journey-api:9100

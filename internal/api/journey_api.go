@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/opentracing/opentracing-go"
 	"github.com/ozonva/ova-journey-api/internal/kafka"
+	"github.com/ozonva/ova-journey-api/internal/metrics"
 	"github.com/ozonva/ova-journey-api/internal/models"
 	"github.com/ozonva/ova-journey-api/internal/repo"
 	"github.com/ozonva/ova-journey-api/internal/utils"
@@ -20,15 +21,17 @@ type JourneyAPI struct {
 	desc.UnimplementedJourneyApiV1Server
 	repo      repo.Repo
 	producer  kafka.Producer
+	metric    metrics.Metrics
 	chunkSize int
 }
 
 // NewJourneyAPI returns JourneyAPI
-func NewJourneyAPI(repo repo.Repo, producer kafka.Producer, chunkSize int) desc.JourneyApiV1Server {
+func NewJourneyAPI(repo repo.Repo, producer kafka.Producer, metric metrics.Metrics, chunkSize int) desc.JourneyApiV1Server {
 	return &JourneyAPI{
 		repo:      repo,
 		producer:  producer,
 		chunkSize: chunkSize,
+		metric:    metric,
 	}
 }
 
@@ -54,6 +57,8 @@ func (api *JourneyAPI) CreateJourneyV1(ctx context.Context, req *desc.CreateJour
 	}
 
 	log.Debug().Str("journey", journey.String()).Msg("CreateJourneyV1: success.")
+	api.metric.CreateJourneyCounterInc()
+
 	return &desc.CreateJourneyResponseV1{JourneyId: journeyID}, nil
 }
 
@@ -107,6 +112,7 @@ func (api *JourneyAPI) MultiCreateJourneyV1(ctx context.Context, req *desc.Multi
 	}
 
 	log.Debug().Msg("MultiCreateJourneyV1: success.")
+	api.metric.MultiCreateJourneyCounterInc()
 
 	return resp, nil
 }
@@ -179,6 +185,8 @@ func (api *JourneyAPI) RemoveJourneyV1(ctx context.Context, req *desc.RemoveJour
 	}
 
 	log.Debug().Uint64("journeyId", req.JourneyId).Msg("RemoveJourneyV1: success.")
+	api.metric.DeleteJourneyCounterInc()
+
 	return &emptypb.Empty{}, nil
 }
 
@@ -203,6 +211,8 @@ func (api *JourneyAPI) UpdateJourneyV1(ctx context.Context, req *desc.UpdateJour
 	}
 
 	log.Debug().Uint64("journeyId", req.Journey.JourneyId).Msg("UpdateJourneyV1: success.")
+	api.metric.UpdateJourneyCounterInc()
+
 	return &emptypb.Empty{}, nil
 }
 
@@ -232,6 +242,8 @@ func (api *JourneyAPI) CreateJourneyTaskV1(ctx context.Context, req *desc.Create
 	}
 
 	log.Debug().Str("journey", journey.String()).Msg("CreateJourneyTaskV1: success.")
+	api.metric.CreateJourneyCounterInc()
+
 	return &emptypb.Empty{}, nil
 }
 
@@ -285,6 +297,7 @@ func (api *JourneyAPI) MultiCreateJourneyTaskV1(ctx context.Context, req *desc.M
 	}
 
 	log.Debug().Msg("MultiCreateJourneyTaskV1: success send to producer.")
+	api.metric.MultiCreateJourneyCounterInc()
 
 	return &emptypb.Empty{}, nil
 }
@@ -306,6 +319,8 @@ func (api *JourneyAPI) RemoveJourneyTaskV1(ctx context.Context, req *desc.Remove
 	}
 
 	log.Debug().Msg("RemoveJourneyTaskV1: success.")
+	api.metric.DeleteJourneyCounterInc()
+
 	return &emptypb.Empty{}, nil
 }
 
@@ -334,5 +349,7 @@ func (api *JourneyAPI) UpdateJourneyTaskV1(ctx context.Context, req *desc.Update
 	}
 
 	log.Debug().Uint64("journeyId", req.Journey.JourneyId).Msg("UpdateJourneyTaskV1: success.")
+	api.metric.UpdateJourneyCounterInc()
+
 	return &emptypb.Empty{}, nil
 }

@@ -21,6 +21,7 @@ var _ = Describe("JourneyApi", func() {
 		ctrl         *gomock.Controller
 		mockRepo     *mocks.MockRepo
 		mockProducer *mocks.MockProducer
+		mockMetrics  *mocks.MockMetrics
 		api          desc.JourneyApiV1Server
 		ctx          context.Context
 
@@ -40,11 +41,12 @@ var _ = Describe("JourneyApi", func() {
 		ctrl = gomock.NewController(GinkgoT())
 		mockRepo = mocks.NewMockRepo(ctrl)
 		mockProducer = mocks.NewMockProducer(ctrl)
+		mockMetrics = mocks.NewMockMetrics(ctrl)
 		ctx = context.Background()
 	})
 
 	JustBeforeEach(func() {
-		api = NewJourneyAPI(mockRepo, mockProducer, chunkSize)
+		api = NewJourneyAPI(mockRepo, mockProducer, mockMetrics, chunkSize)
 	})
 
 	AfterEach(func() {
@@ -57,6 +59,7 @@ var _ = Describe("JourneyApi", func() {
 				It("should return success result with new journey id", func() {
 					newJourneyID := uint64(1)
 					mockRepo.EXPECT().AddJourney(ctx, journeysTable[0]).Return(newJourneyID, nil).Times(1)
+					mockMetrics.EXPECT().CreateJourneyCounterInc().Times(1)
 
 					result, err := api.CreateJourneyV1(ctx, &desc.CreateJourneyRequestV1{
 						UserId:    journeysTable[0].UserID,
@@ -120,6 +123,7 @@ var _ = Describe("JourneyApi", func() {
 
 					mockRepo.EXPECT().MultiAddJourneys(ctx, journeysTableZeroIds[0:2]).Return(newJourneyIDs[0:2], nil).Times(1)
 					mockRepo.EXPECT().MultiAddJourneys(ctx, journeysTableZeroIds[2:]).Return(newJourneyIDs[2:], nil).Times(1)
+					mockMetrics.EXPECT().MultiCreateJourneyCounterInc().Times(1)
 
 					req := &desc.MultiCreateJourneyRequestV1{}
 					for _, journey := range journeysTable {
@@ -264,6 +268,7 @@ var _ = Describe("JourneyApi", func() {
 					journeyID := uint64(1)
 
 					mockRepo.EXPECT().RemoveJourney(ctx, journeyID).Return(nil).Times(1)
+					mockMetrics.EXPECT().DeleteJourneyCounterInc().Times(1)
 
 					result, err := api.RemoveJourneyV1(ctx, &desc.RemoveJourneyRequestV1{JourneyId: journeyID})
 
@@ -300,6 +305,7 @@ var _ = Describe("JourneyApi", func() {
 			Context("Success update journey", func() {
 				It("should return success empty result", func() {
 					mockRepo.EXPECT().UpdateJourney(ctx, journeysTable[2]).Return(nil).Times(1)
+					mockMetrics.EXPECT().UpdateJourneyCounterInc().Times(1)
 
 					result, err := api.UpdateJourneyV1(ctx, &desc.UpdateJourneyRequestV1{
 						Journey: &desc.Journey{
@@ -364,6 +370,7 @@ var _ = Describe("JourneyApi", func() {
 						MessageType: kafka.CreateJourney,
 						Value:       journeysTable[0],
 					}).Times(1)
+					mockMetrics.EXPECT().CreateJourneyCounterInc().Times(1)
 
 					result, err := api.CreateJourneyTaskV1(ctx, &desc.CreateJourneyTaskRequestV1{
 						UserId:    journeysTable[0].UserID,
@@ -434,6 +441,7 @@ var _ = Describe("JourneyApi", func() {
 						MessageType: kafka.MultiCreateJourney,
 						Value:       journeysTableZeroIds[2:],
 					}).Times(1)
+					mockMetrics.EXPECT().MultiCreateJourneyCounterInc().Times(1)
 
 					req := &desc.MultiCreateJourneyTaskRequestV1{}
 					for _, journey := range journeysTable {
@@ -500,6 +508,7 @@ var _ = Describe("JourneyApi", func() {
 						MessageType: kafka.DeleteJourney,
 						Value:       journeyID,
 					}).Times(1)
+					mockMetrics.EXPECT().DeleteJourneyCounterInc().Times(1)
 
 					result, err := api.RemoveJourneyTaskV1(ctx, &desc.RemoveJourneyTaskRequestV1{JourneyId: journeyID})
 
@@ -542,6 +551,7 @@ var _ = Describe("JourneyApi", func() {
 						MessageType: kafka.UpdateJourney,
 						Value:       journeysTable[2],
 					}).Times(1)
+					mockMetrics.EXPECT().UpdateJourneyCounterInc().Times(1)
 
 					result, err := api.UpdateJourneyTaskV1(ctx, &desc.UpdateJourneyTaskRequestV1{
 						Journey: &desc.Journey{
