@@ -16,6 +16,7 @@ type Repo interface {
 	ListJourneys(ctx context.Context, limit, offset uint64) ([]models.Journey, error)
 	DescribeJourney(ctx context.Context, journeyID uint64) (*models.Journey, error)
 	RemoveJourney(ctx context.Context, journeyID uint64) error
+	UpdateJourney(ctx context.Context, journey models.Journey) error
 }
 
 type repo struct {
@@ -140,6 +141,22 @@ func (r *repo) RemoveJourney(ctx context.Context, journeyID uint64) error {
 		Update("journeys").
 		Set("is_deleted", true).
 		Where(squirrel.Eq{"journey_id": journeyID}).
+		RunWith(r.db).
+		PlaceholderFormat(squirrel.Dollar)
+
+	_, err := query.ExecContext(ctx)
+	return err
+}
+
+func (r *repo) UpdateJourney(ctx context.Context, journey models.Journey) error {
+	query := squirrel.
+		Update("journeys").
+		Set("user_id", journey.UserID).
+		Set("address", journey.Address).
+		Set("description", journey.Description).
+		Set("start_time", journey.StartTime).
+		Set("end_time", journey.EndTime).
+		Where(squirrel.Eq{"journey_id": journey.JourneyID}).
 		RunWith(r.db).
 		PlaceholderFormat(squirrel.Dollar)
 

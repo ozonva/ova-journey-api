@@ -4,12 +4,11 @@ import (
 	"context"
 	"github.com/ozonva/ova-journey-api/internal/repo"
 	"github.com/ozonva/ova-journey-api/internal/utils"
-	"google.golang.org/protobuf/types/known/timestamppb"
-
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/ozonva/ova-journey-api/internal/models"
 	desc "github.com/ozonva/ova-journey-api/pkg/ova-journey-api"
@@ -165,6 +164,30 @@ func (a *JourneyAPI) RemoveJourneyV1(ctx context.Context, req *desc.RemoveJourne
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	log.Debug().Uint64("offset", req.JourneyId).Msg("RemoveJourneyV1: success.")
+	log.Debug().Uint64("journeyId", req.JourneyId).Msg("RemoveJourneyV1: success.")
+	return &emptypb.Empty{}, nil
+}
+
+// UpdateJourneyV1 - find journey by id and update another fields
+func (a *JourneyAPI) UpdateJourneyV1(ctx context.Context, req *desc.UpdateJourneyRequestV1) (*emptypb.Empty, error) {
+	if err := req.Validate(); err != nil {
+		log.Error().Err(err).Msg("UpdateJourneyV1: invalid request.")
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	journey := models.Journey{
+		JourneyID:   req.Journey.JourneyId,
+		UserID:      req.Journey.UserId,
+		Address:     req.Journey.Address,
+		Description: req.Journey.Description,
+		StartTime:   req.Journey.StartTime.AsTime(),
+		EndTime:     req.Journey.EndTime.AsTime(),
+	}
+	if err := a.repo.UpdateJourney(ctx, journey); err != nil {
+		log.Error().Err(err).Str("journey", req.Journey.String()).Msg("UpdateJourneyV1: failed.")
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	log.Debug().Uint64("journeyId", req.Journey.JourneyId).Msg("UpdateJourneyV1: success.")
 	return &emptypb.Empty{}, nil
 }

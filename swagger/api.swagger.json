@@ -82,6 +82,36 @@
         "tags": [
           "JourneyApiV1"
         ]
+      },
+      "put": {
+        "operationId": "JourneyApiV1_UpdateJourneyV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiUpdateJourneyRequestV1"
+            }
+          }
+        ],
+        "tags": [
+          "JourneyApiV1"
+        ]
       }
     },
     "/v1/journeys/multi": {
@@ -276,6 +306,14 @@
             "type": "string",
             "format": "uint64"
           }
+        }
+      }
+    },
+    "apiUpdateJourneyRequestV1": {
+      "type": "object",
+      "properties": {
+        "journey": {
+          "$ref": "#/definitions/apiJourney"
         }
       }
     },

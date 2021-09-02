@@ -36,10 +36,16 @@ service JourneyApiV1{
       body: "*"
     };
   }
+  rpc UpdateJourneyV1(UpdateJourneyRequestV1) returns (google.protobuf.Empty){
+    option (google.api.http) = {
+      put: "/v1/journeys"
+      body: "*"
+    };
+  }
 }
 
 message Journey {
-  uint64 journey_id = 1;
+  uint64 journey_id = 1 [(validate.rules).uint64.gt = 0];
   uint64 user_id = 2;
   string address = 3;
   string description = 4;
@@ -83,6 +89,11 @@ message RemoveJourneyRequestV1{
 message MultiCreateJourneyRequestV1{
   repeated CreateJourneyRequestV1 journeys = 1 [(validate.rules).repeated.min_items = 1];
 }
+
 message MultiCreateJourneyResponseV1{
   repeated uint64 journey_ids = 1;
+}
+
+message UpdateJourneyRequestV1{
+  Journey journey = 1 [(validate.rules).message.required = true];
 }

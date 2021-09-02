@@ -290,4 +290,63 @@ var _ = Describe("JourneyApi", func() {
 			})
 		})
 	})
+
+	Context("UpdateJourneyV1", func() {
+		Context("Success update journey", func() {
+			It("should return success empty result", func() {
+				mockRepo.EXPECT().UpdateJourney(ctx, journeysTable[2]).Return(nil).Times(1)
+
+				result, err := api.UpdateJourneyV1(ctx, &desc.UpdateJourneyRequestV1{
+					Journey: &desc.Journey{
+						JourneyId: journeysTable[2].JourneyID,
+						UserId:    journeysTable[2].UserID,
+						Address:   journeysTable[2].Address,
+						StartTime: timestamppb.New(journeysTable[2].StartTime),
+						EndTime:   timestamppb.New(journeysTable[2].EndTime),
+					},
+				})
+
+				Expect(result).Should(Equal(&emptypb.Empty{}))
+				Expect(err).Should(BeNil())
+			})
+		})
+
+		Context("Incorrect journey id in request", func() {
+			It("should return error without calling repo", func() {
+				mockRepo.EXPECT().UpdateJourney(ctx, gomock.Any()).Times(0)
+
+				result, err := api.UpdateJourneyV1(ctx, &desc.UpdateJourneyRequestV1{
+					Journey: &desc.Journey{
+						JourneyId: 0,
+						UserId:    journeysTable[2].UserID,
+						Address:   journeysTable[2].Address,
+						StartTime: timestamppb.New(journeysTable[2].StartTime),
+						EndTime:   timestamppb.New(journeysTable[2].EndTime),
+					},
+				})
+
+				Expect(result).Should(BeNil())
+				Expect(err).Should(HaveOccurred())
+			})
+		})
+
+		Context("Error in repo", func() {
+			It("should return error", func() {
+				mockRepo.EXPECT().UpdateJourney(ctx, journeysTable[2]).Return(errRepo).Times(1)
+
+				result, err := api.UpdateJourneyV1(ctx, &desc.UpdateJourneyRequestV1{
+					Journey: &desc.Journey{
+						JourneyId: journeysTable[2].JourneyID,
+						UserId:    journeysTable[2].UserID,
+						Address:   journeysTable[2].Address,
+						StartTime: timestamppb.New(journeysTable[2].StartTime),
+						EndTime:   timestamppb.New(journeysTable[2].EndTime),
+					},
+				})
+
+				Expect(result).Should(BeNil())
+				Expect(err).Should(HaveOccurred())
+			})
+		})
+	})
 })
