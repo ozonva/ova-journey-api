@@ -12,6 +12,7 @@ type Configuration struct {
 	Gateway   *EndpointConfiguration `yaml:"gateway"`
 	Database  *DatabaseConfiguration `yaml:"database"`
 	ChunkSize int                    `yaml:"chunkSize"`
+	Jaeger    *EndpointConfiguration `yaml:"jaeger"`
 }
 
 // LoadConfigurationFromFile - method for load Configuration from JSON file.

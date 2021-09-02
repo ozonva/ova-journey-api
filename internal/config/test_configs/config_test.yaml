@@ -20,3 +20,7 @@ database:
   driver: pgx
 
 chunkSize: 2
+
+jaeger:
+  host: jaeger
+  port: 6831

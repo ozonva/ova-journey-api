@@ -2,16 +2,16 @@ package api
 
 import (
 	"context"
+	"github.com/opentracing/opentracing-go"
+	"github.com/ozonva/ova-journey-api/internal/models"
 	"github.com/ozonva/ova-journey-api/internal/repo"
 	"github.com/ozonva/ova-journey-api/internal/utils"
+	desc "github.com/ozonva/ova-journey-api/pkg/ova-journey-api"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
-
-	"github.com/ozonva/ova-journey-api/internal/models"
-	desc "github.com/ozonva/ova-journey-api/pkg/ova-journey-api"
 )
 
 // JourneyAPI - gRPC API implementation for working with journeys
@@ -62,6 +62,10 @@ func (a *JourneyAPI) MultiCreateJourneyV1(ctx context.Context, req *desc.MultiCr
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
+	tracer := opentracing.GlobalTracer()
+	span := tracer.StartSpan("MultiCreateJourneyV1")
+	defer span.Finish()
+
 	journeys := make([]models.Journey, len(req.Journeys))
 
 	for i, reqJourney := range req.Journeys {
@@ -90,6 +94,13 @@ func (a *JourneyAPI) MultiCreateJourneyV1(ctx context.Context, req *desc.MultiCr
 			return resp, status.Error(codes.Internal, err.Error())
 		}
 		resp.JourneyIds = append(resp.JourneyIds, ids...)
+
+		childSpan := tracer.StartSpan(
+			"MultiCreateJourneyV1: chunk",
+			opentracing.Tag{Key: "chunkSize", Value: len(chunk)},
+			opentracing.ChildOf(span.Context()),
+		)
+		childSpan.Finish()
 	}
 
 	log.Debug().Msg("MultiCreateJourneyV1: success.")

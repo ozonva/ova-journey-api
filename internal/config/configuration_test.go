@@ -46,6 +46,10 @@ func TestConfiguration_LoadConfigurationFromFile(t *testing.T) {
 						Driver:   "pgx",
 					},
 					ChunkSize: 2,
+					Jaeger: &EndpointConfiguration{
+						Host: "jaeger",
+						Port: 6831,
+					},
 				},
 				err: nil,
 			},
