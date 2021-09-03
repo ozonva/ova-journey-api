@@ -3,6 +3,7 @@ package config
 import (
 	"gopkg.in/yaml.v2"
 	"os"
+	"path/filepath"
 )
 
 // Configuration type represents application configuration
@@ -22,7 +23,7 @@ type Configuration struct {
 func (c *Configuration) LoadConfigurationFromFile(path string) (conf Configuration, err error) {
 	updateConfig := func(path string) (conf Configuration, err error) {
 		var file *os.File
-		file, err = os.Open(path)
+		file, err = os.Open(filepath.Clean(path))
 		if err != nil {
 			return
 		}
