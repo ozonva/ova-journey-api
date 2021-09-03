@@ -88,10 +88,8 @@ func (api *JourneyAPI) MultiCreateJourneyV1(ctx context.Context, req *desc.Multi
 
 	journeysChunks, err := utils.SplitToChunks(journeys, api.chunkSize)
 	if err != nil {
-		if err != nil {
-			log.Error().Err(err).Msg("MultiCreateJourneyV1: failed.")
-			return nil, status.Error(codes.Internal, err.Error())
-		}
+		log.Error().Err(err).Msg("MultiCreateJourneyV1: failed.")
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	resp := &desc.MultiCreateJourneyResponseV1{}
