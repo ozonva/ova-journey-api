@@ -1,6 +1,7 @@
 package config
 
 import (
+	"gopkg.in/yaml.v3"
 	"io/fs"
 	"testing"
 
@@ -65,10 +66,18 @@ func TestConfiguration_LoadConfigurationFromFile(t *testing.T) {
 		},
 		{
 			name:       "non existing file",
-			configPath: "test_configs/config_non_exist_test.json",
+			configPath: "test_configs/config_non_exist_test.yaml",
 			result: testLoadConfigurationFromFileResult{
 				conf: Configuration{},
 				err:  fs.ErrNotExist,
+			},
+		},
+		{
+			name:       "non valid file",
+			configPath: "test_configs/config_test_not_valid.yaml",
+			result: testLoadConfigurationFromFileResult{
+				conf: Configuration{},
+				err:  &yaml.TypeError{},
 			},
 		},
 	}
@@ -76,7 +85,9 @@ func TestConfiguration_LoadConfigurationFromFile(t *testing.T) {
 	conf := Configuration{}
 	for _, testCase := range testTable {
 		result, err := conf.LoadConfigurationFromFile(testCase.configPath)
-		assert.ErrorIs(t, err, testCase.result.err, testCase.name)
+		if testCase.result.err != nil {
+			assert.Error(t, err, testCase.name)
+		}
 		assert.Equal(t, testCase.result.conf, result, testCase.name)
 	}
 }

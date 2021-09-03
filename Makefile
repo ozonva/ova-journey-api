@@ -54,7 +54,9 @@ run:
 .PHONY: test
 test:
 	go test -race ./...
-	go test ./...
+	go test -timeout 300s -coverprofile=test.coverage ./... && \
+	go tool cover -func=test.coverage | tail -n1 | awk '{print "Project test coverage " $$3}'
+	@rm test.coverage
 
 .PHONY: build
 build: deps
