@@ -11,15 +11,26 @@ services:
       - kafka
     networks:
       - ova-journey-api-network
+    logging:
+      driver: 'gelf'
+      options:
+        gelf-address: 'udp://localhost:12201'
+        tag: ova-journey-api
     ports:
-      - "8080:8080"
-      - "8081:8081"
+      - "8080:8080" # JSON gateway (+SwaggerUI on path /swagger)
+      - "8081:8081" # gRPC service
+      - "9100:9100" # gRPC metrics Prometheus
 
   database:
     image: postgres:13
     restart: unless-stopped
     networks:
       - ova-journey-api-network
+    logging:
+      driver: 'gelf'
+      options:
+        gelf-address: 'udp://localhost:12201'
+        tag: ova-journey-db
     volumes:
       - /var/lib/postgresql/data
     ports:
@@ -34,6 +45,11 @@ services:
     restart: unless-stopped
     networks:
       - ova-journey-api-network
+    logging:
+      driver: 'gelf'
+      options:
+        gelf-address: 'udp://localhost:12201'
+        tag: ova-journey-jaeger
     ports:
       - "6831:6831"
       - "16686:16686"
@@ -44,6 +60,11 @@ services:
     restart: unless-stopped
     networks:
       - ova-journey-api-network
+    logging:
+      driver: 'gelf'
+      options:
+        gelf-address: 'udp://localhost:12201'
+        tag: ova-journey-zookeeper
     ports:
       - '2181:2181'
     environment:
@@ -56,6 +77,11 @@ services:
       - zookeeper
     networks:
       - ova-journey-api-network
+    logging:
+      driver: 'gelf'
+      options:
+        gelf-address: 'udp://localhost:12201'
+        tag: ova-journey-kafka
     ports:
       - '9092:9092'
     environment:
@@ -92,6 +118,58 @@ services:
     ports:
       - "9090:9090"
 
+  # MongoDB: https://hub.docker.com/_/mongo/
+  mongo:
+    image: mongo:4.2
+    networks:
+      - ova-journey-api-network
+
+  # Elasticsearch: https://www.elastic.co/guide/en/elasticsearch/reference/7.10/docker.html
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
+    networks:
+      - ova-journey-api-network
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+    environment:
+      - http.host=0.0.0.0
+      - transport.host=localhost
+      - network.host=0.0.0.0
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+
+  # Graylog: https://hub.docker.com/r/graylog/graylog/
+  graylog:
+    image: graylog/graylog:4.1
+    entrypoint: /usr/bin/tini -- wait-for-it elasticsearch:9200 --  /docker-entrypoint.sh
+    restart: always
+    depends_on:
+      - mongo
+      - elasticsearch
+    networks:
+      - ova-journey-api-network
+    ports:
+      # Graylog web interface and REST API
+      - "9000:9000"
+      # Syslog TCP
+      - "1514:1514"
+      # Syslog UDP
+      - "1514:1514/udp"
+      # GELF TCP
+      - "12201:12201"
+      # GELF UDP
+      - "12201:12201/udp"
+    environment:
+      # CHANGE ME (must be at least 16 characters)!
+      - GRAYLOG_PASSWORD_SECRET=somepasswordpepper
+      # Password: admin
+      - GRAYLOG_ROOT_PASSWORD_SHA2=8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
+      - GRAYLOG_HTTP_EXTERNAL_URI=http://127.0.0.1:9000/
 
 networks:
   ova-journey-api-network:
