@@ -73,6 +73,11 @@ clean:
 .PHONY: lint
 lint:
 	golangci-lint run
+	gosec ./...
+
+.PHONY: documentation
+documentation:
+	godoc -http=:6060
 
 .PHONY: docker-build
 docker-build:

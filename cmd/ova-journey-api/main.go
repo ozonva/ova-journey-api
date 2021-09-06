@@ -1,8 +1,9 @@
+// Journeys API (gRPC + JSON gateway) for Ozon Voice Assistant project
+//
+// Ozon Voice Assistant Project Documentation is here https://github.com/ozonva/docs
 package main
 
 import (
-	"github.com/ozonva/ova-journey-api/internal/metrics"
-	"github.com/ozonva/ova-journey-api/internal/tracer"
 	"io"
 	"os"
 	"os/signal"
@@ -17,7 +18,9 @@ import (
 
 	"github.com/ozonva/ova-journey-api/internal/config"
 	"github.com/ozonva/ova-journey-api/internal/kafka"
+	"github.com/ozonva/ova-journey-api/internal/metrics"
 	"github.com/ozonva/ova-journey-api/internal/server"
+	"github.com/ozonva/ova-journey-api/internal/tracer"
 )
 
 //ConfigFile - application configuration file path
