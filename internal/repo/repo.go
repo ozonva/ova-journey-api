@@ -12,10 +12,11 @@ import (
 //Repo - represents the object for working with storage of Journeys
 type Repo interface {
 	AddJourney(ctx context.Context, journey models.Journey) (uint64, error)
-	AddJourneysMulti(ctx context.Context, journeys []models.Journey) error
+	MultiAddJourneys(ctx context.Context, journeys []models.Journey) ([]uint64, error)
 	ListJourneys(ctx context.Context, limit, offset uint64) ([]models.Journey, error)
 	DescribeJourney(ctx context.Context, journeyID uint64) (*models.Journey, error)
 	RemoveJourney(ctx context.Context, journeyID uint64) error
+	UpdateJourney(ctx context.Context, journey models.Journey) error
 }
 
 type repo struct {
@@ -44,10 +45,11 @@ func (r *repo) AddJourney(ctx context.Context, journey models.Journey) (uint64, 
 	return journeyID, nil
 }
 
-func (r *repo) AddJourneysMulti(ctx context.Context, journeys []models.Journey) error {
+func (r *repo) MultiAddJourneys(ctx context.Context, journeys []models.Journey) ([]uint64, error) {
 	query := squirrel.
 		Insert("journeys").
 		Columns("user_id", "address", "description", "start_time", "end_time").
+		Suffix("RETURNING \"journey_id\"").
 		RunWith(r.db).
 		PlaceholderFormat(squirrel.Dollar)
 
@@ -55,9 +57,22 @@ func (r *repo) AddJourneysMulti(ctx context.Context, journeys []models.Journey) 
 		query = query.Values(journey.UserID, journey.Address, journey.Description, journey.StartTime, journey.EndTime)
 	}
 
-	_, err := query.ExecContext(ctx)
-	return err
+	rows, err := query.QueryContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
+	journeyIDs := make([]uint64, 0, len(journeys))
+	for rows.Next() {
+		var journeyID uint64
+		err := rows.Scan(&journeyID)
+		if err != nil {
+			return nil, err
+		}
+		journeyIDs = append(journeyIDs, journeyID)
+	}
+	return journeyIDs, nil
 }
 
 func (r *repo) ListJourneys(ctx context.Context, limit, offset uint64) ([]models.Journey, error) {
@@ -126,6 +141,22 @@ func (r *repo) RemoveJourney(ctx context.Context, journeyID uint64) error {
 		Update("journeys").
 		Set("is_deleted", true).
 		Where(squirrel.Eq{"journey_id": journeyID}).
+		RunWith(r.db).
+		PlaceholderFormat(squirrel.Dollar)
+
+	_, err := query.ExecContext(ctx)
+	return err
+}
+
+func (r *repo) UpdateJourney(ctx context.Context, journey models.Journey) error {
+	query := squirrel.
+		Update("journeys").
+		Set("user_id", journey.UserID).
+		Set("address", journey.Address).
+		Set("description", journey.Description).
+		Set("start_time", journey.StartTime).
+		Set("end_time", journey.EndTime).
+		Where(squirrel.Eq{"journey_id": journey.JourneyID}).
 		RunWith(r.db).
 		PlaceholderFormat(squirrel.Dollar)
 

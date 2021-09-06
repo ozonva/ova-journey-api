@@ -27,7 +27,7 @@ func (f *flusher) Flush(ctx context.Context, journeys []models.Journey) []models
 	}
 	var failedJourneys []models.Journey
 	for i, chunk := range chunks {
-		if err := f.journeyRepo.AddJourneysMulti(ctx, chunk); err != nil {
+		if _, err := f.journeyRepo.MultiAddJourneys(ctx, chunk); err != nil {
 			if failedJourneys == nil {
 				failedJourneys = make([]models.Journey, 0, len(journeys)-i*f.chunkSize)
 			}

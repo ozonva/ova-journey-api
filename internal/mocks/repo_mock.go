@@ -50,20 +50,6 @@ func (mr *MockRepoMockRecorder) AddJourney(arg0, arg1 interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddJourney", reflect.TypeOf((*MockRepo)(nil).AddJourney), arg0, arg1)
 }
 
-// AddJourneysMulti mocks base method.
-func (m *MockRepo) AddJourneysMulti(arg0 context.Context, arg1 []models.Journey) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddJourneysMulti", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// AddJourneysMulti indicates an expected call of AddJourneysMulti.
-func (mr *MockRepoMockRecorder) AddJourneysMulti(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddJourneysMulti", reflect.TypeOf((*MockRepo)(nil).AddJourneysMulti), arg0, arg1)
-}
-
 // DescribeJourney mocks base method.
 func (m *MockRepo) DescribeJourney(arg0 context.Context, arg1 uint64) (*models.Journey, error) {
 	m.ctrl.T.Helper()
@@ -94,6 +80,21 @@ func (mr *MockRepoMockRecorder) ListJourneys(arg0, arg1, arg2 interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListJourneys", reflect.TypeOf((*MockRepo)(nil).ListJourneys), arg0, arg1, arg2)
 }
 
+// MultiAddJourneys mocks base method.
+func (m *MockRepo) MultiAddJourneys(arg0 context.Context, arg1 []models.Journey) ([]uint64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MultiAddJourneys", arg0, arg1)
+	ret0, _ := ret[0].([]uint64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// MultiAddJourneys indicates an expected call of MultiAddJourneys.
+func (mr *MockRepoMockRecorder) MultiAddJourneys(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MultiAddJourneys", reflect.TypeOf((*MockRepo)(nil).MultiAddJourneys), arg0, arg1)
+}
+
 // RemoveJourney mocks base method.
 func (m *MockRepo) RemoveJourney(arg0 context.Context, arg1 uint64) error {
 	m.ctrl.T.Helper()
@@ -106,4 +107,18 @@ func (m *MockRepo) RemoveJourney(arg0 context.Context, arg1 uint64) error {
 func (mr *MockRepoMockRecorder) RemoveJourney(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveJourney", reflect.TypeOf((*MockRepo)(nil).RemoveJourney), arg0, arg1)
+}
+
+// UpdateJourney mocks base method.
+func (m *MockRepo) UpdateJourney(arg0 context.Context, arg1 models.Journey) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateJourney", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateJourney indicates an expected call of UpdateJourney.
+func (mr *MockRepoMockRecorder) UpdateJourney(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateJourney", reflect.TypeOf((*MockRepo)(nil).UpdateJourney), arg0, arg1)
 }

@@ -1,10 +1,10 @@
 project:
   name: Journey API for Amazon Voice Assistant Project
-  version: v0.7.0
+  version: v0.8.0
 
 grpc:
   host: 0.0.0.0
-  port: 9090
+  port: 8081
 
 gateway:
   host: 0.0.0.0
@@ -18,3 +18,19 @@ database:
   name: ova_journey_api
   sslMode: disable
   driver: pgx
+
+chunkSize: 2
+
+jaeger:
+  host: jaeger
+  port: 6831
+
+kafka:
+  topic: "ova-journey-api"
+  brokers:
+    - "kafka:9092"
+
+prometheus:
+  host: 0.0.0.0
+  port: 9100
+  path: "/metrics"

@@ -1,6 +1,9 @@
 package main
 
 import (
+	"github.com/ozonva/ova-journey-api/internal/metrics"
+	"github.com/ozonva/ova-journey-api/internal/tracer"
+	"io"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,6 +16,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/ozonva/ova-journey-api/internal/config"
+	"github.com/ozonva/ova-journey-api/internal/kafka"
 	"github.com/ozonva/ova-journey-api/internal/server"
 )
 
@@ -22,9 +26,17 @@ const ConfigFile = "config/config.yaml"
 // ConfigUpdatePeriod - time duration between checking updates in configuration file
 const ConfigUpdatePeriod = 5 * time.Second
 
-func main() {
-	log.Info().Msg("Hello, I'm ova-journey-api")
+var (
+	db           *sqlx.DB
+	grpc         *server.GrpcServer
+	gateway      *server.GatewayServer
+	tracerCloser io.Closer
+	producer     kafka.Producer
+	metricServer *server.MetricsServer
+	metric       metrics.Metrics
+)
 
+func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 
@@ -33,8 +45,11 @@ func main() {
 
 	cu := config.NewConfigurationUpdater(ConfigUpdatePeriod, ConfigFile)
 	configuration := cu.GetConfiguration()
+	log.Info().Str("version", configuration.Project.Version).Msg("Starting ova-journey-api")
 
-	db, grpc, gateway := startApp(configuration, errChan)
+	metric = metrics.NewMetrics("ova_journey_api", "gRPC_server")
+
+	startApp(configuration, errChan)
 
 	cu.WatchConfigurationFile(func(configuration config.Configuration) {
 		configChan <- configuration
@@ -44,39 +59,59 @@ func main() {
 		select {
 		case c := <-configChan:
 			log.Info().Msg("Restart service after changing configuration")
-			stopApp(db, grpc, gateway)
-			db, grpc, gateway = startApp(&c, errChan)
+			stopApp()
+			startApp(&c, errChan)
 			log.Debug().Msg("Restart service success")
 		case err := <-errChan:
 			log.Err(err).Msg("Internal server error")
-			stopApp(db, grpc, gateway)
+			stopApp()
 			return
 		case <-quit:
 			log.Info().Msg("Shutdown service")
-			stopApp(db, grpc, gateway)
+			stopApp()
 			return
 		}
 	}
 }
 
-func startApp(c *config.Configuration, errChan chan<- error) (*sqlx.DB, *server.GrpcServer, *server.GatewayServer) {
-	db, err := createDb(c.Database)
+func startApp(c *config.Configuration, errChan chan<- error) {
+	var err error
+
+	tracerCloser = tracer.InitTracer(c.Project.Name, c.Jaeger)
+
+	producer, err = kafka.NewProducer(c.Kafka)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Cannot create Kafka producer")
+	}
+
+	db, err = createDb(c.Database)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Cannot establish connection to database")
-		return nil, nil, nil
 	}
-	grpcServer := server.NewGrpcServer(c.GRPC, db, errChan)
-	gatewayServer := server.NewGatewayServer(c.Gateway, c.GRPC, errChan)
-	grpcServer.Start()
-	gatewayServer.Start()
-	return db, grpcServer, gatewayServer
+
+	metricServer = server.NewMetricsServer(c.Prometheus)
+	grpc = server.NewGrpcServer(c.GRPC, producer, db, metric, c.ChunkSize, errChan)
+	gateway = server.NewGatewayServer(c.Gateway, c.GRPC, errChan)
+
+	metricServer.Start()
+	grpc.Start()
+	gateway.Start()
 }
 
-func stopApp(database *sqlx.DB, grpcServer *server.GrpcServer, gatewayServer *server.GatewayServer) {
-	gatewayServer.Stop()
-	grpcServer.Stop()
-	if err := database.Close(); err != nil {
+func stopApp() {
+	gateway.Stop()
+	grpc.Stop()
+	metricServer.Stop()
+	if err := db.Close(); err != nil {
 		log.Fatal().Err(err).Msg("Database close error")
+	}
+
+	if err := producer.Close(); err != nil {
+		log.Fatal().Err(err).Msg("Kafka producer close error")
+	}
+
+	if err := tracerCloser.Close(); err != nil {
+		log.Fatal().Err(err).Msg("Tracer close error")
 	}
 }
 

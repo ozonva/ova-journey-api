@@ -40,7 +40,12 @@ func (m *Journey) Validate() error {
 		return nil
 	}
 
-	// no validation rules for JourneyId
+	if m.GetJourneyId() <= 0 {
+		return JourneyValidationError{
+			field:  "JourneyId",
+			reason: "value must be greater than 0",
+		}
+	}
 
 	// no validation rules for UserId
 
@@ -679,3 +684,591 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RemoveJourneyRequestV1ValidationError{}
+
+// Validate checks the field values on MultiCreateJourneyRequestV1 with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *MultiCreateJourneyRequestV1) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if len(m.GetJourneys()) < 1 {
+		return MultiCreateJourneyRequestV1ValidationError{
+			field:  "Journeys",
+			reason: "value must contain at least 1 item(s)",
+		}
+	}
+
+	for idx, item := range m.GetJourneys() {
+		_, _ = idx, item
+
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return MultiCreateJourneyRequestV1ValidationError{
+					field:  fmt.Sprintf("Journeys[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// MultiCreateJourneyRequestV1ValidationError is the validation error returned
+// by MultiCreateJourneyRequestV1.Validate if the designated constraints
+// aren't met.
+type MultiCreateJourneyRequestV1ValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MultiCreateJourneyRequestV1ValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MultiCreateJourneyRequestV1ValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MultiCreateJourneyRequestV1ValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MultiCreateJourneyRequestV1ValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MultiCreateJourneyRequestV1ValidationError) ErrorName() string {
+	return "MultiCreateJourneyRequestV1ValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MultiCreateJourneyRequestV1ValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMultiCreateJourneyRequestV1.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MultiCreateJourneyRequestV1ValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MultiCreateJourneyRequestV1ValidationError{}
+
+// Validate checks the field values on MultiCreateJourneyResponseV1 with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *MultiCreateJourneyResponseV1) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	return nil
+}
+
+// MultiCreateJourneyResponseV1ValidationError is the validation error returned
+// by MultiCreateJourneyResponseV1.Validate if the designated constraints
+// aren't met.
+type MultiCreateJourneyResponseV1ValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MultiCreateJourneyResponseV1ValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MultiCreateJourneyResponseV1ValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MultiCreateJourneyResponseV1ValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MultiCreateJourneyResponseV1ValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MultiCreateJourneyResponseV1ValidationError) ErrorName() string {
+	return "MultiCreateJourneyResponseV1ValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MultiCreateJourneyResponseV1ValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMultiCreateJourneyResponseV1.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MultiCreateJourneyResponseV1ValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MultiCreateJourneyResponseV1ValidationError{}
+
+// Validate checks the field values on UpdateJourneyRequestV1 with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *UpdateJourneyRequestV1) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if m.GetJourney() == nil {
+		return UpdateJourneyRequestV1ValidationError{
+			field:  "Journey",
+			reason: "value is required",
+		}
+	}
+
+	if v, ok := interface{}(m.GetJourney()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateJourneyRequestV1ValidationError{
+				field:  "Journey",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	return nil
+}
+
+// UpdateJourneyRequestV1ValidationError is the validation error returned by
+// UpdateJourneyRequestV1.Validate if the designated constraints aren't met.
+type UpdateJourneyRequestV1ValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateJourneyRequestV1ValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateJourneyRequestV1ValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateJourneyRequestV1ValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateJourneyRequestV1ValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateJourneyRequestV1ValidationError) ErrorName() string {
+	return "UpdateJourneyRequestV1ValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateJourneyRequestV1ValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateJourneyRequestV1.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateJourneyRequestV1ValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateJourneyRequestV1ValidationError{}
+
+// Validate checks the field values on CreateJourneyTaskRequestV1 with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *CreateJourneyTaskRequestV1) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if m.GetUserId() <= 0 {
+		return CreateJourneyTaskRequestV1ValidationError{
+			field:  "UserId",
+			reason: "value must be greater than 0",
+		}
+	}
+
+	// no validation rules for Address
+
+	// no validation rules for Description
+
+	if v, ok := interface{}(m.GetStartTime()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateJourneyTaskRequestV1ValidationError{
+				field:  "StartTime",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if v, ok := interface{}(m.GetEndTime()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateJourneyTaskRequestV1ValidationError{
+				field:  "EndTime",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	return nil
+}
+
+// CreateJourneyTaskRequestV1ValidationError is the validation error returned
+// by CreateJourneyTaskRequestV1.Validate if the designated constraints aren't met.
+type CreateJourneyTaskRequestV1ValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateJourneyTaskRequestV1ValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateJourneyTaskRequestV1ValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateJourneyTaskRequestV1ValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateJourneyTaskRequestV1ValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateJourneyTaskRequestV1ValidationError) ErrorName() string {
+	return "CreateJourneyTaskRequestV1ValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateJourneyTaskRequestV1ValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateJourneyTaskRequestV1.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateJourneyTaskRequestV1ValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateJourneyTaskRequestV1ValidationError{}
+
+// Validate checks the field values on RemoveJourneyTaskRequestV1 with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *RemoveJourneyTaskRequestV1) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if m.GetJourneyId() <= 0 {
+		return RemoveJourneyTaskRequestV1ValidationError{
+			field:  "JourneyId",
+			reason: "value must be greater than 0",
+		}
+	}
+
+	return nil
+}
+
+// RemoveJourneyTaskRequestV1ValidationError is the validation error returned
+// by RemoveJourneyTaskRequestV1.Validate if the designated constraints aren't met.
+type RemoveJourneyTaskRequestV1ValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RemoveJourneyTaskRequestV1ValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RemoveJourneyTaskRequestV1ValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RemoveJourneyTaskRequestV1ValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RemoveJourneyTaskRequestV1ValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RemoveJourneyTaskRequestV1ValidationError) ErrorName() string {
+	return "RemoveJourneyTaskRequestV1ValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RemoveJourneyTaskRequestV1ValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRemoveJourneyTaskRequestV1.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RemoveJourneyTaskRequestV1ValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RemoveJourneyTaskRequestV1ValidationError{}
+
+// Validate checks the field values on MultiCreateJourneyTaskRequestV1 with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *MultiCreateJourneyTaskRequestV1) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if len(m.GetJourneys()) < 1 {
+		return MultiCreateJourneyTaskRequestV1ValidationError{
+			field:  "Journeys",
+			reason: "value must contain at least 1 item(s)",
+		}
+	}
+
+	for idx, item := range m.GetJourneys() {
+		_, _ = idx, item
+
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return MultiCreateJourneyTaskRequestV1ValidationError{
+					field:  fmt.Sprintf("Journeys[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// MultiCreateJourneyTaskRequestV1ValidationError is the validation error
+// returned by MultiCreateJourneyTaskRequestV1.Validate if the designated
+// constraints aren't met.
+type MultiCreateJourneyTaskRequestV1ValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MultiCreateJourneyTaskRequestV1ValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MultiCreateJourneyTaskRequestV1ValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MultiCreateJourneyTaskRequestV1ValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MultiCreateJourneyTaskRequestV1ValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MultiCreateJourneyTaskRequestV1ValidationError) ErrorName() string {
+	return "MultiCreateJourneyTaskRequestV1ValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MultiCreateJourneyTaskRequestV1ValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMultiCreateJourneyTaskRequestV1.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MultiCreateJourneyTaskRequestV1ValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MultiCreateJourneyTaskRequestV1ValidationError{}
+
+// Validate checks the field values on UpdateJourneyTaskRequestV1 with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *UpdateJourneyTaskRequestV1) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if m.GetJourney() == nil {
+		return UpdateJourneyTaskRequestV1ValidationError{
+			field:  "Journey",
+			reason: "value is required",
+		}
+	}
+
+	if v, ok := interface{}(m.GetJourney()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateJourneyTaskRequestV1ValidationError{
+				field:  "Journey",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	return nil
+}
+
+// UpdateJourneyTaskRequestV1ValidationError is the validation error returned
+// by UpdateJourneyTaskRequestV1.Validate if the designated constraints aren't met.
+type UpdateJourneyTaskRequestV1ValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateJourneyTaskRequestV1ValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateJourneyTaskRequestV1ValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateJourneyTaskRequestV1ValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateJourneyTaskRequestV1ValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateJourneyTaskRequestV1ValidationError) ErrorName() string {
+	return "UpdateJourneyTaskRequestV1ValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateJourneyTaskRequestV1ValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateJourneyTaskRequestV1.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateJourneyTaskRequestV1ValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateJourneyTaskRequestV1ValidationError{}

@@ -7,10 +7,14 @@ import (
 
 // Configuration type represents application configuration
 type Configuration struct {
-	Project  *ProjectConfiguration  `yaml:"project"`
-	GRPC     *EndpointConfiguration `yaml:"grpc"`
-	Gateway  *EndpointConfiguration `yaml:"gateway"`
-	Database *DatabaseConfiguration `yaml:"database"`
+	Project    *ProjectConfiguration    `yaml:"project"`
+	GRPC       *EndpointConfiguration   `yaml:"grpc"`
+	Gateway    *EndpointConfiguration   `yaml:"gateway"`
+	Database   *DatabaseConfiguration   `yaml:"database"`
+	ChunkSize  int                      `yaml:"chunkSize"`
+	Jaeger     *EndpointConfiguration   `yaml:"jaeger"`
+	Kafka      *KafkaConfiguration      `yaml:"kafka"`
+	Prometheus *PrometheusConfiguration `yaml:"prometheus"`
 }
 
 // LoadConfigurationFromFile - method for load Configuration from JSON file.
