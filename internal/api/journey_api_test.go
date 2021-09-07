@@ -176,6 +176,28 @@ var _ = Describe("JourneyApi", func() {
 					Expect(err).Should(HaveOccurred())
 				})
 			})
+
+			Context("Incorrect chunk size", func() {
+				It("should return error without calling repo", func() {
+					mockRepo.EXPECT().MultiAddJourneys(ctx, gomock.Any()).Times(0)
+
+					newAPI := NewJourneyAPI(mockRepo, mockProducer, mockMetrics, 0)
+
+					result, err := newAPI.MultiCreateJourneyV1(ctx, &desc.MultiCreateJourneyRequestV1{
+						Journeys: []*desc.CreateJourneyRequestV1{
+							{
+								UserId:    journeysTable[0].UserID,
+								Address:   journeysTable[0].Address,
+								StartTime: timestamppb.New(journeysTable[0].StartTime),
+								EndTime:   timestamppb.New(journeysTable[0].EndTime),
+							},
+						},
+					})
+
+					Expect(result).Should(BeNil())
+					Expect(err).Should(HaveOccurred())
+				})
+			})
 		})
 
 		Context("DescribeJourneyV1", func() {
@@ -493,6 +515,28 @@ var _ = Describe("JourneyApi", func() {
 					}
 
 					result, err := api.MultiCreateJourneyTaskV1(ctx, req)
+
+					Expect(result).Should(BeNil())
+					Expect(err).Should(HaveOccurred())
+				})
+			})
+
+			Context("Incorrect chunk size", func() {
+				It("should return error without calling repo", func() {
+					mockRepo.EXPECT().MultiAddJourneys(ctx, gomock.Any()).Times(0)
+
+					newAPI := NewJourneyAPI(mockRepo, mockProducer, mockMetrics, 0)
+
+					result, err := newAPI.MultiCreateJourneyTaskV1(ctx, &desc.MultiCreateJourneyTaskRequestV1{
+						Journeys: []*desc.CreateJourneyRequestV1{
+							{
+								UserId:    journeysTable[0].UserID,
+								Address:   journeysTable[0].Address,
+								StartTime: timestamppb.New(journeysTable[0].StartTime),
+								EndTime:   timestamppb.New(journeysTable[0].EndTime),
+							},
+						},
+					})
 
 					Expect(result).Should(BeNil())
 					Expect(err).Should(HaveOccurred())

@@ -33,3 +33,25 @@ func TestJourney_String(t *testing.T) {
 			endTimeStringRFC822,
 		), result)
 }
+
+func TestNewJourney(t *testing.T) {
+	journey := &Journey{
+		JourneyID:   2,
+		UserID:      1,
+		Address:     "Воронеж",
+		Description: "Поездка на выходные",
+		StartTime:   time.Now(),
+		EndTime:     time.Now(),
+	}
+
+	result := NewJourney(
+		journey.JourneyID,
+		journey.UserID,
+		journey.Address,
+		journey.Description,
+		journey.StartTime,
+		journey.EndTime,
+	)
+
+	assert.Equal(t, journey, result, "should return equal journey")
+}
