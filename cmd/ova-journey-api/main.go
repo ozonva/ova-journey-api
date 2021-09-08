@@ -30,13 +30,14 @@ const ConfigFile = "config/config.yaml"
 const ConfigUpdatePeriod = 5 * time.Second
 
 var (
-	db           *sqlx.DB
-	grpc         *server.GrpcServer
-	gateway      *server.GatewayServer
-	tracerCloser io.Closer
-	producer     kafka.Producer
-	metricServer *server.MetricsServer
-	metric       metrics.Metrics
+	db            *sqlx.DB
+	grpc          *server.GrpcServer
+	gateway       *server.GatewayServer
+	healthChecker *server.HealthServer
+	tracerCloser  io.Closer
+	producer      kafka.Producer
+	metricServer  *server.MetricsServer
+	metric        metrics.Metrics
 )
 
 func main() {
@@ -92,10 +93,12 @@ func startApp(c *config.Configuration, errChan chan<- error) {
 		log.Fatal().Err(err).Msg("Cannot establish connection to database")
 	}
 
+	healthChecker = server.NewHealthServer(c.HealthCheck, producer, db)
 	metricServer = server.NewMetricsServer(c.Prometheus)
 	grpc = server.NewGrpcServer(c.GRPC, producer, db, metric, c.ChunkSize, errChan)
 	gateway = server.NewGatewayServer(c.Gateway, c.GRPC, errChan)
 
+	healthChecker.Start()
 	metricServer.Start()
 	grpc.Start()
 	gateway.Start()
@@ -105,6 +108,7 @@ func stopApp() {
 	gateway.Stop()
 	grpc.Stop()
 	metricServer.Stop()
+	healthChecker.Stop()
 	if err := db.Close(); err != nil {
 		log.Fatal().Err(err).Msg("Database close error")
 	}

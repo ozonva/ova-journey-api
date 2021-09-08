@@ -20,6 +20,7 @@ services:
       - "8080:8080" # JSON gateway (+SwaggerUI on path /swagger)
       - "8081:8081" # gRPC service
       - "9100:9100" # gRPC metrics Prometheus
+      - "9101:9101" # healthChecker
 
   database:
     image: postgres:13

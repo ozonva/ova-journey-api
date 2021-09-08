@@ -11,10 +11,12 @@ Ozon Voice Assistant Project Documentation is here https://github.com/ozonva/doc
 ### API
 #### GRPC
 http://localhost:8081
-### JSON Gateway
+#### JSON Gateway
 http://localhost:8080
 #### Metrics for Prometheus
-http://localhost:9100
+http://localhost:9100/metrics
+#### HealthChecker
+http://localhost:9101/health
 
 ### With UI
 #### Swagger UI 

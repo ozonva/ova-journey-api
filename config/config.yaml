@@ -34,3 +34,8 @@ prometheus:
   host: 0.0.0.0
   port: 9100
   path: "/metrics"
+
+health_check:
+  host: 0.0.0.0
+  port: 9101
+  path: "/health"
